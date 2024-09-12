@@ -12,12 +12,12 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 
 @Configuration
-public class OpenAPIConfig {
+public class swaggerConfig {
 
-    @Value("${bezkoder.openapi.dev-url}")
+    @Value("${pmu-exec.openapi.dev-url}")
     private String devUrl;
 
-    @Value("${bezkoder.openapi.prod-url}")
+    @Value("${pmu-exec.openapi.prod-url}")
     private String prodUrl;
 
     @Bean

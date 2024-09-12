@@ -11,9 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
+import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -33,10 +34,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Testcontainers
 // JPA drop and create table, good for testing
 @TestPropertySource(properties = {"spring.jpa.hibernate.ddl-auto=create-drop"})
+@EmbeddedKafka(
+        partitions = 1,
+        controlledShutdown = false,
+        brokerProperties = {
+                "listeners=PLAINTEXT://localhost:3333",
+                "port=3333"
+        })
 class ExecAppIntegrationTests {
 
     @LocalServerPort
     private Integer port;
+
+    @Autowired
+    KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
 
     @Autowired
     private TestRestTemplate restTemplate;
@@ -51,10 +62,9 @@ class ExecAppIntegrationTests {
 
     // static, all tests share this postgres container
     @Container
-    @ServiceConnection
-    static MySQLContainer<?> postgres = new MySQLContainer<>(
-            "mysql:8.0-debian"
-    );
+    private static final MySQLContainer<?> postgres =
+            new MySQLContainer<>("mysql:8.0-debian");
+
 
 
     @BeforeEach
@@ -65,7 +75,9 @@ class ExecAppIntegrationTests {
         // Delete all records from the database before each test
         courseJpaRepository.deleteAll();
         partantJpaRepository.deleteAll();
-
+        try (MySQLContainer<?> postgres = new MySQLContainer<>("mysql:8.0-debian")) {
+            postgres.start();
+        }
         // Insert some test data
         CourseEntity b1 = new CourseEntity("Course A",
                 99,
@@ -206,7 +218,7 @@ class ExecAppIntegrationTests {
     }
 
     @Nested
-    class PartantIntegrationTests {
+    class PartantRecordIntegrationTests {
         @Test
         void testPartantFindAll() {
 

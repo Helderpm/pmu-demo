@@ -1,8 +1,10 @@
 package com.pmu2.exec.service;
 
+import com.pmu2.exec.domain.CourseRecord;
 import com.pmu2.exec.infrastrure.db.sql.CourseEntity;
 import com.pmu2.exec.infrastrure.db.sql.CourseJpaRepository;
 import com.pmu2.exec.infrastrure.db.sql.PartantEntity;
+import com.pmu2.exec.infrastrure.kafka.producer.PmuProducerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,12 +18,21 @@ public class PmuCourseService {
     @Autowired
     private CourseJpaRepository courseJpaRepository;
 
+    @Autowired
+    private PmuProducerService pmuProducerService;
+
     public List<CourseEntity> findAll() {
         return courseJpaRepository.findAll();
     }
 
     public CourseEntity save(CourseEntity course) {
-        return courseJpaRepository.save(course);
+        var res = courseJpaRepository.save(course);
+
+        var cc = new CourseRecord(Math.toIntExact(res.getCourseId()), course.getName(), course.getNumber(), course.getDate(),
+               new ArrayList<>());
+        pmuProducerService.sendMessage(cc);
+
+        return res;
     }
 
     public void deleteById(Long id) {

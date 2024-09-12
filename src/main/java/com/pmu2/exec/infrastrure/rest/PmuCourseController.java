@@ -1,6 +1,6 @@
 package com.pmu2.exec.infrastrure.rest;
 
-import com.pmu2.exec.infrastrure.db.sql.CourseEntity;
+ import com.pmu2.exec.infrastrure.db.sql.CourseEntity;
 import com.pmu2.exec.service.PmuCourseService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
