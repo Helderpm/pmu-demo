@@ -1,7 +1,7 @@
-package com.pmu2.exec.infrastrure.outbound;
+package com.pmu2.exec.infrastrure.rest;
 
-import com.pmu2.exec.infrastrure.inbound.CourseEntity;
-import com.pmu2.exec.service.PmuCourseService;
+import com.pmu2.exec.infrastrure.db.sql.PartantEntity;
+import com.pmu2.exec.service.PmuPartantService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,35 +10,35 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/pmu/course")
+@RequestMapping("/pmu/partant")
 @Tag(name = "Tutorial", description = "Tutorial management APIs")
-public class PmuCourseController {
+public class PmuPartantController {
 
     @Autowired
-    private PmuCourseService pmuCourseService;
+    private PmuPartantService pmuPartantService;
 
     //find all courses in the system
     @GetMapping
-    public List<CourseEntity> findAll() {
-        return pmuCourseService.findAll();
+    public List<PartantEntity> findAll() {
+        return pmuPartantService.findAll();
     }
 
-    // create a book
+    // create a partant
     @ResponseStatus(HttpStatus.CREATED) // 201
     @PostMapping
-    public CourseEntity create(@RequestBody CourseEntity course) {
-        return pmuCourseService.save(course);
+    public PartantEntity create(@RequestBody PartantEntity partant) {
+        return pmuPartantService.save(partant);
     }
 
     // delete a book
     @ResponseStatus(HttpStatus.NO_CONTENT) // 204
     @DeleteMapping("/{id}")
     public void deleteById(@PathVariable Long id) {
-        pmuCourseService.deleteById(id);
+        pmuPartantService.deleteById(id);
     }
 
     @GetMapping("/find/{name}")
-    public List<CourseEntity> findByName(@PathVariable String name) {
-        return pmuCourseService.findByName(name);
+    public List<PartantEntity> findByName(@PathVariable String name) {
+        return pmuPartantService.findByName(name);
     }
 }

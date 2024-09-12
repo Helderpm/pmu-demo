@@ -1,4 +1,4 @@
-package com.pmu2.exec.infrastrure.inbound;
+package com.pmu2.exec.infrastrure.db.sql;
 
 import jakarta.persistence.*;
 import lombok.*;

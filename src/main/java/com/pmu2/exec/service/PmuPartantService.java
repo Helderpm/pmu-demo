@@ -1,7 +1,7 @@
 package com.pmu2.exec.service;
 
-import com.pmu2.exec.infrastrure.inbound.PartantEntity;
-import com.pmu2.exec.infrastrure.inbound.PartantJpaRepository;
+import com.pmu2.exec.infrastrure.db.sql.PartantEntity;
+import com.pmu2.exec.infrastrure.db.sql.PartantJpaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

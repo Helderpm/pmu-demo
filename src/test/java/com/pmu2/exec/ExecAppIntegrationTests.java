@@ -1,9 +1,9 @@
 package com.pmu2.exec;
 
-import com.pmu2.exec.infrastrure.inbound.CourseEntity;
-import com.pmu2.exec.infrastrure.inbound.CourseJpaRepository;
-import com.pmu2.exec.infrastrure.inbound.PartantEntity;
-import com.pmu2.exec.infrastrure.inbound.PartantJpaRepository;
+import com.pmu2.exec.infrastrure.db.sql.CourseEntity;
+import com.pmu2.exec.infrastrure.db.sql.CourseJpaRepository;
+import com.pmu2.exec.infrastrure.db.sql.PartantEntity;
+import com.pmu2.exec.infrastrure.db.sql.PartantJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
