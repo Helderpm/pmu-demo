@@ -1,4 +1,4 @@
-package com.pmu2.exec.service.mapperDTO;
+package com.pmu2.exec.service.mapper;
 
 import com.pmu2.exec.domain.PartantRecord;
 import com.pmu2.exec.infrastrure.db.sql.PartantEntity;

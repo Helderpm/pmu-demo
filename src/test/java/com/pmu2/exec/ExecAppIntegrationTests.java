@@ -55,7 +55,7 @@ class ExecAppIntegrationTests {
     @Autowired
     private TestRestTemplate restTemplate;
 
-    private String baseUri;
+    private String BASEURI;
 
     @Autowired
     CourseJpaRepository courseJpaRepository;
@@ -73,7 +73,7 @@ class ExecAppIntegrationTests {
     @BeforeEach
     void testSetUp() {
 
-        baseUri = "http://localhost:" + port;
+        BASEURI = "http://localhost:" + port;
 
         // Delete all records from the database before each test
         courseJpaRepository.deleteAll();
@@ -116,7 +116,7 @@ class ExecAppIntegrationTests {
             ParameterizedTypeReference<List<CourseEntity>> typeRef = new ParameterizedTypeReference<>() {
             };
             ResponseEntity<List<CourseEntity>> response = restTemplate.exchange(
-                    baseUri + "/pmu/course",
+                    BASEURI + "/pmu/course",
                     HttpMethod.GET,
                     null,
                     typeRef
@@ -147,7 +147,7 @@ class ExecAppIntegrationTests {
 
             // test POST save
             ResponseEntity<CourseRecord> responseEntity =
-                    restTemplate.postForEntity(baseUri + "/pmu/course", request, CourseRecord.class);
+                    restTemplate.postForEntity(BASEURI + "/pmu/course", request, CourseRecord.class);
 
             assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
 
@@ -174,7 +174,7 @@ class ExecAppIntegrationTests {
 
             // find Course A
             ResponseEntity<List<CourseEntity>> response = restTemplate.exchange(
-                    baseUri + "/pmu/course/find/" + courseName,
+                    BASEURI + "/pmu/course/find/" + courseName,
                     HttpMethod.GET,
                     null,
                     typeRef
@@ -212,7 +212,7 @@ class ExecAppIntegrationTests {
 
             // delete by id
             ResponseEntity<Void> response = restTemplate.exchange(
-                    baseUri + "/pmu/course/" + id,
+                    BASEURI + "/pmu/course/" + id,
                     HttpMethod.DELETE,
                     null,
                     Void.class
@@ -239,7 +239,7 @@ class ExecAppIntegrationTests {
                     new ParameterizedTypeReference<>() {
             };
             ResponseEntity<List<PartantEntity>> response = restTemplate.exchange(
-                    baseUri + "/pmu/partant",
+                    BASEURI + "/pmu/partant",
                     HttpMethod.GET,
                     null,
                     typeRef
@@ -261,7 +261,7 @@ class ExecAppIntegrationTests {
 
             // test POST save
             ResponseEntity<PartantEntity> responseEntity =
-                    restTemplate.postForEntity(baseUri + "/pmu/partant", request, PartantEntity.class);
+                    restTemplate.postForEntity(BASEURI + "/pmu/partant", request, PartantEntity.class);
 
             assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
 
@@ -285,7 +285,7 @@ class ExecAppIntegrationTests {
 
             // find partant AA
             ResponseEntity<List<PartantEntity>> response = restTemplate.exchange(
-                    baseUri + "/pmu/partant/find/" + partantName,
+                    BASEURI + "/pmu/partant/find/" + partantName,
                     HttpMethod.GET,
                     null,
                     typeRef
@@ -308,6 +308,7 @@ class ExecAppIntegrationTests {
 
         @Test
         void testPartantDeleteById() {
+
             String partantName = "Partant AC";
 
             PartantEntity p3 = new PartantEntity(partantName, 709);
@@ -319,7 +320,7 @@ class ExecAppIntegrationTests {
 
             // delete by id
             ResponseEntity<Void> response = restTemplate.exchange(
-                    baseUri + "/pmu/partant/" + id,
+                    BASEURI + "/pmu/partant/" + id,
                     HttpMethod.DELETE,
                     null,
                     Void.class

@@ -6,40 +6,20 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.TopicBuilder;
 
-/**
- * This class is responsible for configuring the auto-creation of Kafka topics.
- * It uses Spring's @Configuration annotation to mark it as a configuration class.
- * The class contains a method that creates a new Kafka topic using the provided topic name, partition count, and replica count.
- */
 @Configuration
 public class AutoCreateTopicConfig {
 
-    /**
-     * The name of the Kafka topic to be created.
-     * This value is obtained from the application's properties file using Spring's @Value annotation.
-     */
     @Value("${spring.kafka.topic.name}")
     private String topicName;
 
-    /**
-     * The number of partitions for the Kafka topic.
-     * This value is obtained from the application's properties file using Spring's @Value annotation.
-     */
     @Value("${spring.kafka.topic.partition-count}")
     public Integer partition;
 
-    /**
-     * The number of replicas for the Kafka topic.
-     * This value is obtained from the application's properties file using Spring's @Value annotation.
-     */
     @Value("${spring.kafka.topic.replica-count}")
     public Integer replicas;
 
-    /**
-     * Creates a new Kafka topic using the provided topic name, partition count, and replica count.
-     *
-     * @return a NewTopic object representing the Kafka topic to be created
-     */
+    private int partitionNumber;
+
     @Bean
     public NewTopic inventoryEvents() {
         return TopicBuilder.name(topicName)
@@ -47,4 +27,21 @@ public class AutoCreateTopicConfig {
                 .replicas(replicas)
                 .build();
     }
+
+    /**
+     * This method creates a new Kafka topic based on the provided configuration properties.
+     * topicName         The name of the Kafka topic to be created.
+     * partitionNumber   The number of partitions for the Kafka topic.
+     * replicationFactor The replication factor for the Kafka topic.
+     * @return A NewTopic instance representing the newly created Kafka topic.
+     *
+     * @Order(-1) - Indicates that this bean should be created before any other beans in the application context.
+     * @Bean - Indicates that a method produces a bean to be managed by the Spring container.
+     * @NewTopic - Indicates that a method produces a new Kafka topic.
+     */
+//    @Bean
+//    @Order(-1)
+//    public NewTopic createNewTopic() {
+//        return new NewTopic(topicName, partitionNumber, (short) replicationFactor);
+//    }
 }

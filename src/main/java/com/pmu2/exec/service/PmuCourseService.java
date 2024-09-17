@@ -5,29 +5,28 @@ import com.pmu2.exec.infrastrure.db.sql.CourseEntity;
 import com.pmu2.exec.infrastrure.db.sql.CourseJpaRepository;
 import com.pmu2.exec.infrastrure.db.sql.PartantEntity;
 import com.pmu2.exec.infrastrure.kafka.producer.PmuProducerService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.pmu2.exec.service.mapper.CourseMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 
 @Service
 public class PmuCourseService {
 
-    @Autowired
-    private CourseJpaRepository courseJpaRepository;
+    private final CourseJpaRepository courseJpaRepository;
+    private final PmuProducerService pmuProducerService;
+    private final CourseMapper courseMapper;
 
-    @Autowired
-    private PmuProducerService pmuProducerService;
-
-    @Autowired
-    private CourseMapper modelMapper;
+    public PmuCourseService(CourseJpaRepository courseJpaRepository, PmuProducerService pmuProducerService, CourseMapper courseMapper) {
+        this.courseJpaRepository = courseJpaRepository;
+        this.pmuProducerService = pmuProducerService;
+        this.courseMapper = courseMapper;
+    }
 
     public List<CourseRecord> findAll() {
-
-        return modelMapper.toRecordList(courseJpaRepository.findAll());
+        return courseMapper.toRecordList(courseJpaRepository.findAll());
     }
 
     public CourseRecord saveEvent(CourseRecord course) {
@@ -41,37 +40,12 @@ public class PmuCourseService {
         return course;
     }
     public CourseRecord save(CourseRecord course) {
-        var coursePersist = courseJpaRepository.save(getModelMapperEntity(course));
+        var coursePersist = courseJpaRepository.save(courseMapper.toEntity(course));
 
         List<CourseEntity> listE = courseJpaRepository.findAll();
 
-        return new CourseRecord(Math.toIntExact(coursePersist.getCourseId()),
-                coursePersist.getName(),
-                coursePersist.getNumber(),
-                coursePersist.getDate(),
-                new ArrayList<>());
+        return courseMapper.toRecord(coursePersist);
     }
-
-    private static CourseRecord getCourseEvent(CourseEntity coursePersist) {
-        return new CourseRecord(Math.toIntExact(coursePersist.getCourseId()),
-                coursePersist.getName(),
-                coursePersist.getNumber(),
-                coursePersist.getDate(),
-                new ArrayList<>());
-    }
-
-    private CourseEntity getModelMapperEntity(CourseRecord course) {
-        return modelMapper.toEntity(course);
-    }
-
-//    public CourseRecord saveCourse(CourseRecord course) {
-//        var coursePersist = courseJpaRepository.save(modelMapper.toEntity(course));
-//        return new CourseRecord( Math.toIntExact(coursePersist.getCourseId()),
-//                coursePersist.getName(),
-//                coursePersist.getNumber(),
-//                coursePersist.getDate(),
-//                new ArrayList<>());
-//    }
 
     public void deleteById(Long id) {
         courseJpaRepository.deleteById(id);
@@ -79,7 +53,7 @@ public class PmuCourseService {
 
     public List<CourseRecord> findByName(String name) {
 
-        return modelMapper.toRecordList(courseJpaRepository.findByName(name));
+        return courseMapper.toRecordList(courseJpaRepository.findByName(name));
     }
 
     public List<PartantEntity> findPartantsByCourse(Long courseId) {
