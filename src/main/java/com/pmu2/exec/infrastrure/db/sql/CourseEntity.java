@@ -1,6 +1,7 @@
 package com.pmu2.exec.infrastrure.db.sql;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import java.time.LocalDate;
 import java.util.List;
@@ -19,6 +20,7 @@ public class CourseEntity {
     private Long courseId;
 
     @Column(name = "nom", nullable = false)
+    @NotBlank(message = "Your Course needs a name.")
     private String name;
 
     @Column(name = "numero", nullable = false)

@@ -1,6 +1,7 @@
 package com.pmu2.exec.infrastrure.db.sql;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 @Entity
@@ -17,6 +18,7 @@ public class PartantEntity {
     private Long id;
 
     @Column(name = "nom", nullable = false)
+    @NotBlank(message = "Your Partant needs a name.")
     private String name;
 
     @Column(name = "numero", nullable = false)

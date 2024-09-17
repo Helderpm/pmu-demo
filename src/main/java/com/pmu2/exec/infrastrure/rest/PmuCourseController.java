@@ -1,7 +1,7 @@
 package com.pmu2.exec.infrastrure.rest;
 
- import com.pmu2.exec.infrastrure.db.sql.CourseEntity;
-import com.pmu2.exec.service.PmuCourseService;
+ import com.pmu2.exec.domain.CourseRecord;
+ import com.pmu2.exec.service.PmuCourseService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,15 +19,15 @@ public class PmuCourseController {
 
     //find all courses in the system
     @GetMapping
-    public List<CourseEntity> findAll() {
+    public List<CourseRecord> findAll() {
         return pmuCourseService.findAll();
     }
 
     // create a book
     @ResponseStatus(HttpStatus.CREATED) // 201
     @PostMapping
-    public CourseEntity create(@RequestBody CourseEntity course) {
-        return pmuCourseService.save(course);
+    public CourseRecord create(@RequestBody CourseRecord course) {
+        return pmuCourseService.saveEvent(course);
     }
 
     // delete a book
@@ -38,7 +38,7 @@ public class PmuCourseController {
     }
 
     @GetMapping("/find/{name}")
-    public List<CourseEntity> findByName(@PathVariable String name) {
+    public List<CourseRecord> findByName(@PathVariable String name) {
         return pmuCourseService.findByName(name);
     }
 }

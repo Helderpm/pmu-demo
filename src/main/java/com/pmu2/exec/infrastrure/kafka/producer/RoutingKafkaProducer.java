@@ -2,7 +2,10 @@ package com.pmu2.exec.infrastrure.kafka.producer;
 
 import com.pmu2.exec.domain.CourseRecord;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.annotation.Order;
 import org.springframework.kafka.core.RoutingKafkaTemplate;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +23,12 @@ public class RoutingKafkaProducer {
      */
     @Value("${spring.kafka.topic.name}")
     private String topicName;
+
+    @Value("${spring.kafka.replication.factor:1}")
+    private int replicationFactor;
+
+    @Value("${spring.kafka.partition.number:1}")
+    private int partitionNumber;
 
     /**
      * The RoutingKafkaTemplate instance used to send messages to Kafka topics.
@@ -42,5 +51,11 @@ public class RoutingKafkaProducer {
      */
     public void sendInventoryEvent(CourseRecord courseEvent) {
         routingTemplate.send(topicName, courseEvent);
+    }
+
+    @Bean
+    @Order(-1)
+    public NewTopic createNewTopic() {
+        return new NewTopic(topicName, partitionNumber, (short) replicationFactor);
     }
 }

@@ -1,5 +1,6 @@
 package com.pmu2.exec;
 
+import com.pmu2.exec.domain.CourseRecord;
 import com.pmu2.exec.infrastrure.db.sql.CourseEntity;
 import com.pmu2.exec.infrastrure.db.sql.CourseJpaRepository;
 import com.pmu2.exec.infrastrure.db.sql.PartantEntity;
@@ -23,7 +24,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 
+import static java.lang.Thread.sleep;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -52,7 +55,7 @@ class ExecAppIntegrationTests {
     @Autowired
     private TestRestTemplate restTemplate;
 
-    private String BASEURI;
+    private String baseUri;
 
     @Autowired
     CourseJpaRepository courseJpaRepository;
@@ -70,13 +73,14 @@ class ExecAppIntegrationTests {
     @BeforeEach
     void testSetUp() {
 
-        BASEURI = "http://localhost:" + port;
+        baseUri = "http://localhost:" + port;
 
         // Delete all records from the database before each test
         courseJpaRepository.deleteAll();
         partantJpaRepository.deleteAll();
-        try (MySQLContainer<?> postgres = new MySQLContainer<>("mysql:8.0-debian")) {
-            postgres.start();
+
+        try (MySQLContainer<?> mySqlContainer = new MySQLContainer<>("mysql:8.0-debian")) {
+            mySqlContainer.start();
         }
         // Insert some test data
         CourseEntity b1 = new CourseEntity("Course A",
@@ -112,7 +116,7 @@ class ExecAppIntegrationTests {
             ParameterizedTypeReference<List<CourseEntity>> typeRef = new ParameterizedTypeReference<>() {
             };
             ResponseEntity<List<CourseEntity>> response = restTemplate.exchange(
-                    BASEURI + "/pmu/course",
+                    baseUri + "/pmu/course",
                     HttpMethod.GET,
                     null,
                     typeRef
@@ -125,21 +129,29 @@ class ExecAppIntegrationTests {
         }
 
         @Test
-        void testCreate() {
+        void testCreate() throws InterruptedException {
 
             // Create a new CourseEntity E
             String courseName = "Course E";
-            CourseEntity newCourse = new CourseEntity(courseName, 9, LocalDate.parse("2023-09-14"));
+            // create instance of Random class
+            Random rand = new Random();
+            // Generate random integers in range 0 to 999
+            int randInt1 = rand.nextInt(1000);
+
+            CourseRecord newCourse = new CourseRecord(randInt1, courseName, 9, LocalDate.parse("2023-09-14"), List.of());
             HttpHeaders headers = new HttpHeaders();
             headers.add("Content-Type", "application/json");
-            HttpEntity<CourseEntity> request = new HttpEntity<>(newCourse, headers);
+            HttpEntity<CourseRecord> request = new HttpEntity<>(newCourse, headers);
+
+
 
             // test POST save
-            ResponseEntity<CourseEntity> responseEntity =
-                    restTemplate.postForEntity(BASEURI + "/pmu/course", request, CourseEntity.class);
+            ResponseEntity<CourseRecord> responseEntity =
+                    restTemplate.postForEntity(baseUri + "/pmu/course", request, CourseRecord.class);
 
             assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
 
+            sleep(3000);
             // find Course E
             List<CourseEntity> list = courseJpaRepository.findByName(courseName);
 
@@ -162,7 +174,7 @@ class ExecAppIntegrationTests {
 
             // find Course A
             ResponseEntity<List<CourseEntity>> response = restTemplate.exchange(
-                    BASEURI + "/pmu/course/find/" + courseName,
+                    baseUri + "/pmu/course/find/" + courseName,
                     HttpMethod.GET,
                     null,
                     typeRef
@@ -200,7 +212,7 @@ class ExecAppIntegrationTests {
 
             // delete by id
             ResponseEntity<Void> response = restTemplate.exchange(
-                    BASEURI + "/pmu/course/" + id,
+                    baseUri + "/pmu/course/" + id,
                     HttpMethod.DELETE,
                     null,
                     Void.class
@@ -227,7 +239,7 @@ class ExecAppIntegrationTests {
                     new ParameterizedTypeReference<>() {
             };
             ResponseEntity<List<PartantEntity>> response = restTemplate.exchange(
-                    BASEURI + "/pmu/partant",
+                    baseUri + "/pmu/partant",
                     HttpMethod.GET,
                     null,
                     typeRef
@@ -249,7 +261,7 @@ class ExecAppIntegrationTests {
 
             // test POST save
             ResponseEntity<PartantEntity> responseEntity =
-                    restTemplate.postForEntity(BASEURI + "/pmu/partant", request, PartantEntity.class);
+                    restTemplate.postForEntity(baseUri + "/pmu/partant", request, PartantEntity.class);
 
             assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
 
@@ -273,7 +285,7 @@ class ExecAppIntegrationTests {
 
             // find partant AA
             ResponseEntity<List<PartantEntity>> response = restTemplate.exchange(
-                    BASEURI + "/pmu/partant/find/" + partantName,
+                    baseUri + "/pmu/partant/find/" + partantName,
                     HttpMethod.GET,
                     null,
                     typeRef
@@ -296,20 +308,18 @@ class ExecAppIntegrationTests {
 
         @Test
         void testPartantDeleteById() {
-
             String partantName = "Partant AC";
-            PartantEntity p3 = new PartantEntity(partantName, 709);
-            var tt = partantJpaRepository.save(p3);
 
+            PartantEntity p3 = new PartantEntity(partantName, 709);
+            partantJpaRepository.save(p3);
             List<PartantEntity> list = partantJpaRepository.findByName(partantName);
-            PartantEntity partantEntityA = list.getFirst();
 
             // get partant A id
-            Long id = partantEntityA.getId();
+            Long id = list.getFirst().getId();
 
             // delete by id
             ResponseEntity<Void> response = restTemplate.exchange(
-                    BASEURI + "/pmu/partant/" + id,
+                    baseUri + "/pmu/partant/" + id,
                     HttpMethod.DELETE,
                     null,
                     Void.class
