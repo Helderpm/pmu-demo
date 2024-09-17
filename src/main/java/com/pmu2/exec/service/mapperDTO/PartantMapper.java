@@ -1,9 +1,8 @@
-package com.pmu2.exec.service;
+package com.pmu2.exec.service.mapperDTO;
 
 import com.pmu2.exec.domain.PartantRecord;
 import com.pmu2.exec.infrastrure.db.sql.PartantEntity;
 import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
 
 import java.util.List;
 

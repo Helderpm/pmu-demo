@@ -14,16 +14,35 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Component;
 
+/**
+ * This class is responsible for consuming messages from a Kafka topic and processing them.
+ * It uses Spring Kafka for message consumption and provides functionality for handling retries and dead-letter topics.
+ */
 @Component
 @Slf4j
 public class PmuCourseConsumer {
 
     private final PmuCourseService pmuCourseService;
 
+    /**
+     * Constructor for PmuCourseConsumer.
+     *
+     * @param pmuCourseService The service for handling course-related operations.
+     */
     public PmuCourseConsumer(PmuCourseService pmuCourseService) {
         this.pmuCourseService = pmuCourseService;
     }
 
+    /**
+     * Listens to the Kafka topic specified in the 'spring.kafka.topic.name' property.
+     * Processes the received messages by saving them to the database using the PmuCourseService.
+     * Implements retry logic for handling exceptions and provides dead-letter topic support.
+     *
+     * @param courseRecord The course record received from Kafka.
+     * @param topic The Kafka topic from which the message was received.
+     * @param partition The Kafka partition from which the message was received.
+     * @param offset The offset of the message in the Kafka topic.
+     */
     @KafkaListener(topics = "${spring.kafka.topic.name}",
             concurrency = "${spring.kafka.consumer.level.concurrency:3}")
     @RetryableTopic(
@@ -46,6 +65,13 @@ public class PmuCourseConsumer {
         }
     }
 
+    /**
+     * Handles dead-letter topic messages.
+     * Logs the received message and the topic name.
+     *
+     * @param message The message received from the dead-letter topic.
+     * @param topic The Kafka topic from which the message was received.
+     */
     @DltHandler
     public void dtl(
             String message,

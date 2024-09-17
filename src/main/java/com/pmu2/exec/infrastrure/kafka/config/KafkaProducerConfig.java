@@ -19,30 +19,54 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+/**
+ * Configuration class for Kafka producer.
+ * This class provides beans for Kafka producer factory and Kafka template.
+ * It also includes a method to create a routing Kafka template for routing messages to different topics.
+ */
 @Configuration
 public class KafkaProducerConfig {
 
+    /**
+     * List of bootstrap servers for Kafka.
+     * This value is read from the application properties file using Spring's @Value annotation.
+     */
     @Value("${spring.kafka.bootstrap-servers}")
     private List<String> bootstrapAddress;
 
+    /**
+     * Creates a Kafka producer factory.
+     *
+     * @return A Kafka producer factory with specified configurations.
+     */
     @Bean
     public ProducerFactory<?, ?> producerFactory() {
         Map<String, Object> configProps = new HashMap<>();
-        configProps.put(
-          ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);
-        configProps.put(
-          ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class);
-        configProps.put(
-          ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);
+        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class);
+        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
         return new DefaultKafkaProducerFactory<>(configProps);
     }
 
+    /**
+     * Creates a Kafka template.
+     *
+     * @return A Kafka template using the producer factory created in the previous method.
+     */
     @Bean
     public KafkaTemplate<?, ?> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
 
-    //@Bean
+    /**
+     * Creates a routing Kafka template.
+     * This template routes messages to different topics based on the provided pattern.
+     *
+     * @param context The application context.
+     * @param pf The default producer factory.
+     * @return A routing Kafka template.
+     */
+    @Bean
     public RoutingKafkaTemplate routingTemplate(GenericApplicationContext context,
                                                 ProducerFactory<Object, Object> pf) {
 

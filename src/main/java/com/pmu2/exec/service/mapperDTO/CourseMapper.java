@@ -1,4 +1,4 @@
-package com.pmu2.exec.service;
+package com.pmu2.exec.service.mapperDTO;
 
 import com.pmu2.exec.domain.CourseRecord;
 import com.pmu2.exec.infrastrure.db.sql.CourseEntity;
@@ -10,8 +10,6 @@ import java.util.List;
  * This interface provides methods for mapping between {@link CourseEntity} and {@link CourseRecord}.
  * It uses MapStruct for automatic mapping between the two types.
  *
- * @author YourName
- * @since 1.0
  */
 @Mapper(componentModel = "spring")
 public interface CourseMapper {

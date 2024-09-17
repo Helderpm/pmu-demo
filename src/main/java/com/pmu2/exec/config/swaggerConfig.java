@@ -11,15 +11,33 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
+/**
+ * This class is responsible for configuring the OpenAPI specification for the application.
+ * It provides information about the API, contact details, license, and server URLs.
+ */
 @Configuration
 public class swaggerConfig {
 
+    /**
+     * The URL of the development server.
+     * This value is read from the application's properties file using the @Value annotation.
+     */
     @Value("${pmu-exec.openapi.dev-url}")
     private String devUrl;
 
+    /**
+     * The URL of the production server.
+     * This value is read from the application's properties file using the @Value annotation.
+     */
     @Value("${pmu-exec.openapi.prod-url}")
     private String prodUrl;
 
+    /**
+     * This method creates and returns an instance of OpenAPI,
+     * which contains the API's configuration details.
+     *
+     * @return an instance of OpenAPI with the specified configuration
+     */
     @Bean
     public OpenAPI myOpenAPI() {
         Server devServer = new Server();
@@ -41,7 +59,8 @@ public class swaggerConfig {
                 .title("Tutorial Management API")
                 .version("1.0")
                 .contact(contact)
-                .description("This API exposes endpoints to manage tutorials.").termsOfService("https://www.bezkoder.com/terms")
+                .description("This API exposes endpoints to manage tutorials.")
+                .termsOfService("https://www.bezkoder.com/terms")
                 .license(mitLicense);
 
         return new OpenAPI().info(info).servers(List.of(devServer, prodServer));
