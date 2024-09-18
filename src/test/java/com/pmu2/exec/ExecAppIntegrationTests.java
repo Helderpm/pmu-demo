@@ -1,6 +1,7 @@
 package com.pmu2.exec;
 
 import com.pmu2.exec.domain.CourseRecord;
+import com.pmu2.exec.domain.PartantRecord;
 import com.pmu2.exec.infrastrure.db.sql.CourseEntity;
 import com.pmu2.exec.infrastrure.db.sql.CourseJpaRepository;
 import com.pmu2.exec.infrastrure.db.sql.PartantEntity;
@@ -219,10 +220,10 @@ class ExecAppIntegrationTests {
         void testPartantFindAll() {
 
             // find all Partant and return List<PartantEntity>
-            ParameterizedTypeReference<List<PartantEntity>> typeRef =
+            ParameterizedTypeReference<List<PartantRecord>> typeRef =
                     new ParameterizedTypeReference<>() {
             };
-            ResponseEntity<List<PartantEntity>> response = restTemplate.exchange(
+            ResponseEntity<List<PartantRecord>> response = restTemplate.exchange(
                     BASEURI + "/pmu/partant",
                     HttpMethod.GET,
                     null,
@@ -238,14 +239,14 @@ class ExecAppIntegrationTests {
 
             // Create a new CourseEntity E
             String partantName = "Partant EE";
-            PartantEntity newPartant = new PartantEntity(partantName, 14);
+            PartantRecord newPartant = new PartantRecord(12, partantName, 14);
             HttpHeaders headers = new HttpHeaders();
             headers.add("Content-Type", "application/json");
-            HttpEntity<PartantEntity> request = new HttpEntity<>(newPartant, headers);
+            HttpEntity<PartantRecord> request = new HttpEntity<>(newPartant, headers);
 
             // test POST save
-            ResponseEntity<PartantEntity> responseEntity =
-                    restTemplate.postForEntity(BASEURI + "/pmu/partant", request, PartantEntity.class);
+            ResponseEntity<PartantRecord> responseEntity =
+                    restTemplate.postForEntity(BASEURI + "/pmu/partant", request, PartantRecord.class);
 
             assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
 
@@ -262,13 +263,13 @@ class ExecAppIntegrationTests {
         @Test
         void testPartantFindByName() {
             String partantName = "Partant AA";
-            List<PartantEntity> list = partantJpaRepository.findByName(partantName);
+            List<PartantEntity> entityList = partantJpaRepository.findByName(partantName);
 
-            ParameterizedTypeReference<List<PartantEntity>> typeRef =
+            ParameterizedTypeReference<List<PartantRecord>> typeRef =
                     new ParameterizedTypeReference<>() { };
 
             // find partant AA
-            ResponseEntity<List<PartantEntity>> response = restTemplate.exchange(
+            ResponseEntity<List<PartantRecord>> response = restTemplate.exchange(
                     BASEURI + "/pmu/partant/find/" + partantName,
                     HttpMethod.GET,
                     null,
@@ -278,13 +279,13 @@ class ExecAppIntegrationTests {
             // test response code
             assertEquals(HttpStatus.OK, response.getStatusCode());
 
-            List<PartantEntity> listResponse = response.getBody();
+            List<PartantRecord> listResponse = response.getBody();
             assert listResponse != null;
 
             assertEquals(1, listResponse.size());
 
             // Test partant A details
-            PartantEntity partantEntity = list.getFirst();
+            PartantEntity partantEntity = entityList.getFirst();
             assertEquals(partantName, partantEntity.getName());
             assertEquals(909, partantEntity.getNumber());
 

@@ -1,7 +1,9 @@
 package com.pmu2.exec.service;
 
+import com.pmu2.exec.domain.PartantRecord;
 import com.pmu2.exec.infrastrure.db.sql.PartantEntity;
 import com.pmu2.exec.infrastrure.db.sql.PartantJpaRepository;
+import com.pmu2.exec.service.mapper.PartantMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,24 +12,28 @@ import java.util.List;
 @Service
 public class PmuPartantService {
 
-    @Autowired
-    private PartantJpaRepository partantJpaRepository;
+    private final PartantJpaRepository partantJpaRepository;
+    private final PartantMapper partantMapper;
 
-    public List<PartantEntity> findAll() {
-        return partantJpaRepository.findAll();
+    public PmuPartantService(PartantJpaRepository partantJpaRepository, PartantMapper partantMapper) {
+        this.partantJpaRepository = partantJpaRepository;
+        this.partantMapper = partantMapper;
     }
 
-    public PartantEntity save(PartantEntity partant) {
-        return partantJpaRepository.save(partant);
+    public List<PartantRecord> findAll() {
+        return partantMapper.toReccordList(partantJpaRepository.findAll());
+    }
+
+    public PartantRecord save(PartantRecord partant) {
+        return partantMapper.toReccord(partantJpaRepository.save(partantMapper.toEntity(partant)));
     }
 
     public void deleteById(Long id) {
         partantJpaRepository.deleteById(id);
     }
 
-    public List<PartantEntity> findByName(String name) {
-        return partantJpaRepository.findByName(name);
+    public List<PartantRecord> findByName(String name) {
+        return partantMapper.toReccordList(partantJpaRepository.findByName(name));
     }
-
 
 }

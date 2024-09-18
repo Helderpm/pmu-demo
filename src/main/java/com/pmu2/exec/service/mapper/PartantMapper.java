@@ -10,7 +10,7 @@ import java.util.List;
  * This interface provides methods for mapping between {@link PartantEntity} and {@link PartantRecord}.
  * It uses MapStruct for automatic mapping between the two types.
  */
-@Mapper
+@Mapper(componentModel = "spring")
 public interface PartantMapper {
     
     /**

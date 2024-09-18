@@ -1,6 +1,6 @@
 package com.pmu2.exec.infrastrure.rest;
 
-import com.pmu2.exec.infrastrure.db.sql.PartantEntity;
+import com.pmu2.exec.domain.PartantRecord;
 import com.pmu2.exec.service.PmuPartantService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,14 +19,14 @@ public class PmuPartantController {
 
     //find all courses in the system
     @GetMapping
-    public List<PartantEntity> findAll() {
+    public List<PartantRecord> findAll() {
         return pmuPartantService.findAll();
     }
 
     // create a partant
     @ResponseStatus(HttpStatus.CREATED) // 201
     @PostMapping
-    public PartantEntity create(@RequestBody PartantEntity partant) {
+    public PartantRecord create(@RequestBody PartantRecord partant) {
         return pmuPartantService.save(partant);
     }
 
@@ -38,7 +38,7 @@ public class PmuPartantController {
     }
 
     @GetMapping("/find/{name}")
-    public List<PartantEntity> findByName(@PathVariable String name) {
+    public List<PartantRecord> findByName(@PathVariable String name) {
         return pmuPartantService.findByName(name);
     }
 }
