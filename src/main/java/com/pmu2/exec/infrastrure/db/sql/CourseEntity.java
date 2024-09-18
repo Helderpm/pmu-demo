@@ -8,7 +8,7 @@ import java.util.List;
 
 /**
  * Represents a Course in the database.
- *
+ * <p>
  * This class is an entity that maps to the "courses" table in the database.
  * It contains fields for the course's ID, name, number, date, and a list of participants.
  *
@@ -16,8 +16,8 @@ import java.util.List;
  * @since 1.0
  */
 @Entity
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @EqualsAndHashCode(of = "courseId")
@@ -78,6 +78,22 @@ public class CourseEntity {
         this.name = name;
         this.number = number;
         this.date = date;
+    }
+
+    
+    /**
+     * Constructs a new instance of {@link CourseEntity} with the given name, number, date, and list of participants.
+     *
+     * @param name The name of the course. It cannot be null or empty.
+     * @param number The number of the course.
+     * @param date The date of the course.
+     * @param partants The list of participants in the course.
+     */
+    public CourseEntity(String name, int number, LocalDate date, List<PartantEntity> partants) {
+        this.name = name;
+        this.number = number;
+        this.date = date;
+        this.partants = partants;
     }
 
 }
