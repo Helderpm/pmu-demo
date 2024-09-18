@@ -32,18 +32,10 @@ public class PmuCourseService {
     public CourseRecord saveEvent(CourseRecord course) {
 
         pmuProducerService.sendMessage(course);
-
-//        var coursePersist = courseJpaRepository.save(getModelMapperEntity(course));
-//
-//        var courseEvent = getCourseEvent(coursePersist);
-
         return course;
     }
     public CourseRecord save(CourseRecord course) {
         var coursePersist = courseJpaRepository.save(courseMapper.toEntity(course));
-
-        List<CourseEntity> listE = courseJpaRepository.findAll();
-
         return courseMapper.toRecord(coursePersist);
     }
 

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pmu2.exec.domain.CourseRecord;
 import com.pmu2.exec.infrastrure.kafka.producer.PmuProducerService;
+import com.pmu2.exec.utils.TestUtil;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -20,13 +21,8 @@ import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 
-import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -52,15 +48,6 @@ class CourseProducerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @DynamicPropertySource
-    static void kafkaProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", () -> "jdbc:h2:mem:test");
-        registry.add("spring.datasource.driverClassName", () -> "org.h2.Driver");
-        registry.add("spring.datasource.username", () -> "root");
-        registry.add("spring.datasource.password", () -> "secret");
-        registry.add("spring.flyway.enabled", () -> "false");
-    }
-
     @BeforeAll
     void setUp() {
         DefaultKafkaConsumerFactory<String, String> consumerFactory = new DefaultKafkaConsumerFactory<>(getConsumerProperties());
@@ -73,18 +60,9 @@ class CourseProducerTest {
     }
 
     @Test
-    void testWriteToKafka() throws InterruptedException, JsonProcessingException {
+    void testWriteToKafkaWithCurse() throws InterruptedException, JsonProcessingException {
         // Create a new CourseEntity E
-        String courseName = "Course E";
-        // Parse date string to LocalDate object
-        LocalDate dateParse = LocalDate.parse("2023-09-14");
-        // create instance of Random class
-        Random rand = new Random();
-        // Generate random integers in range 0 to 999
-        int randInt1 = rand.nextInt(1000);
-        // Create a user and write to Kafka
-
-        CourseRecord newCourse = new CourseRecord(randInt1, courseName, 9, dateParse, List.of());
+        CourseRecord newCourse = TestUtil.newCourseRecord("course E");
         producer.sendMessage(newCourse);
 
         // Read the message (John Wick user) with a test consumer from Kafka and assert its properties
@@ -92,10 +70,29 @@ class CourseProducerTest {
         assertNotNull(message);
         CourseRecord result = objectMapper.readValue(message.value(), CourseRecord.class);
         assertNotNull(result);
-        assertEquals(randInt1, result.courseId());
-        assertEquals(courseName, result.name());
-        assertEquals(dateParse, result.date());
+        assertEquals(newCourse.courseId(), result.courseId());
+        assertEquals(newCourse.name(), result.name());
+        assertEquals(newCourse.number(), result.number());
+        assertEquals(newCourse.date(), result.date());
         assertEquals(0, result.partants().size());
+    }
+
+    @Test
+    void testWriteToKafkaWithCursePartant() throws InterruptedException, JsonProcessingException {
+        // Create a new CourseEntity E
+        CourseRecord newCourse = TestUtil.newCourseRecordwithParant("course E");
+        producer.sendMessage(newCourse);
+
+        // Read the message (John Wick user) with a test consumer from Kafka and assert its properties
+        ConsumerRecord<String, String> message = records.poll(500, TimeUnit.MILLISECONDS);
+        assertNotNull(message);
+        CourseRecord result = objectMapper.readValue(message.value(), CourseRecord.class);
+        assertNotNull(result);
+        assertEquals(newCourse.courseId(), result.courseId());
+        assertEquals(newCourse.name(), result.name());
+        assertEquals(newCourse.number(), result.number());
+        assertEquals(newCourse.date(), result.date());
+        assertEquals(newCourse.partants().size(), result.partants().size());
     }
 
     private Map<String, Object> getConsumerProperties() {

@@ -11,6 +11,7 @@ import org.mapstruct.factory.Mappers;
 import java.time.LocalDate;
 import java.util.List;
 
+import static com.pmu2.exec.utils.TestUtil.newcourseEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CourseMapperTest {
@@ -31,40 +32,33 @@ class CourseMapperTest {
     @Test
     void shouldMapCourseEntityToCourseRecordWithCorrespondingValues() {
         // given
-        CourseEntity courseEntity = new CourseEntity();
-        courseEntity.setCourseId(1L);
-        courseEntity.setName("Course A");
-        courseEntity.setDate(LocalDate.now());
-        courseEntity.setPartants(this.getListParticipantA());
+        var course = newcourseEntity("Course A");
+        course.setPartants(this.getListParticipantA());
 
         // when
-        CourseRecord courseRecord = courseMapper.toRecord(courseEntity);
+        CourseRecord courseRecord = courseMapper.toRecord(course);
 
         // then
-        assertEquals(courseEntity.getCourseId(), courseRecord.courseId().longValue());
-        assertEquals(courseEntity.getName(), courseRecord.name());
-        assertEquals(courseEntity.getNumber(), courseRecord.number());
-        assertEquals(courseEntity.getDate(), courseRecord.date());
-        assertEquals(courseEntity.getPartants().size(), courseRecord.partants().size());
+        assertEquals(course.getCourseId(), courseRecord.courseId().longValue());
+        assertEquals(course.getName(), courseRecord.name());
+        assertEquals(course.getNumber(), courseRecord.number());
+        assertEquals(course.getDate(), courseRecord.date());
+        assertEquals(course.getPartants().size(), courseRecord.partants().size());
     }
 
     @Test
     void shouldMapCourseEntityWithEmptyPartantEntityListToCourseRecordWithEmptyPartantList() {
         // given
-        CourseEntity courseEntity = new CourseEntity();
-        courseEntity.setCourseId(1L);
-        courseEntity.setName("Course A");
-        courseEntity.setDate(LocalDate.now());
-        courseEntity.setPartants(List.of());
+        var course = newcourseEntity("Course A");
 
         // when
-        CourseRecord courseRecord = courseMapper.toRecord(courseEntity);
+        CourseRecord courseRecord = courseMapper.toRecord(course);
 
         // then
-        assertEquals(courseEntity.getCourseId(), courseRecord.courseId().longValue());
-        assertEquals(courseEntity.getName(), courseRecord.name());
-        assertEquals(courseEntity.getNumber(), courseRecord.number());
-        assertEquals(courseEntity.getDate(), courseRecord.date());
-        assertEquals(courseEntity.getPartants().size(), courseRecord.partants().size());
+        assertEquals(course.getCourseId(), courseRecord.courseId().longValue());
+        assertEquals(course.getName(), courseRecord.name());
+        assertEquals(course.getNumber(), courseRecord.number());
+        assertEquals(course.getDate(), courseRecord.date());
+        assertEquals(course.getPartants().size(), courseRecord.partants().size());
     }
 }

@@ -5,6 +5,7 @@ import com.pmu2.exec.infrastrure.db.sql.CourseEntity;
 import com.pmu2.exec.infrastrure.db.sql.CourseJpaRepository;
 import com.pmu2.exec.infrastrure.db.sql.PartantEntity;
 import com.pmu2.exec.infrastrure.db.sql.PartantJpaRepository;
+import com.pmu2.exec.utils.TestUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -24,8 +25,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
-import java.util.Random;
 
+import static com.pmu2.exec.utils.TestUtil.getParticipantEntityListA;
 import static java.lang.Thread.sleep;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -87,7 +88,7 @@ class ExecAppIntegrationTests {
                 99,
                 LocalDate.of(2023, 8, 28));
 
-        b1.setPartants(getListParticipantA());
+        b1.setPartants(getParticipantEntityListA());
 
         CourseEntity b2 = new CourseEntity("Course B",
                 89,
@@ -98,13 +99,6 @@ class ExecAppIntegrationTests {
 
         courseJpaRepository.saveAll(List.of(b1, b2, b3));
 
-    }
-
-    private List<PartantEntity> getListParticipantA() {
-        PartantEntity p1 = new PartantEntity("Partant AA", 909);
-        PartantEntity p2 = new PartantEntity("Partant AB", 809);
-
-        return List.of(p1, p2);
     }
 
     @Nested
@@ -122,28 +116,19 @@ class ExecAppIntegrationTests {
                     typeRef
             );
 
-
-
             assertEquals(HttpStatus.OK, response.getStatusCode());
             assertEquals(3, Objects.requireNonNull(response.getBody()).size());
         }
 
         @Test
         void testCreate() throws InterruptedException {
-
             // Create a new CourseEntity E
-            String courseName = "Course E";
-            // create instance of Random class
-            Random rand = new Random();
-            // Generate random integers in range 0 to 999
-            int randInt1 = rand.nextInt(1000);
+            String courseE = "course E";
+            CourseRecord newCourse = TestUtil.newCourseRecord(courseE);
 
-            CourseRecord newCourse = new CourseRecord(randInt1, courseName, 9, LocalDate.parse("2023-09-14"), List.of());
             HttpHeaders headers = new HttpHeaders();
             headers.add("Content-Type", "application/json");
             HttpEntity<CourseRecord> request = new HttpEntity<>(newCourse, headers);
-
-
 
             // test POST save
             ResponseEntity<CourseRecord> responseEntity =
@@ -153,14 +138,13 @@ class ExecAppIntegrationTests {
 
             sleep(3000);
             // find Course E
-            List<CourseEntity> list = courseJpaRepository.findByName(courseName);
+            List<CourseEntity> list = courseJpaRepository.findByName(courseE);
 
             // Test Course E details
             CourseEntity course = list.getFirst();
-            assertEquals(courseName, course.getName());
-            assertEquals(9, course.getNumber());
-            assertEquals(LocalDate.of(2023, 9, 14), course.getDate());
-
+            assertEquals(newCourse.name(), course.getName());
+            assertEquals(newCourse.number(), course.getNumber());
+            assertEquals(newCourse.date(), course.getDate());
         }
 
         @Test
@@ -280,8 +264,8 @@ class ExecAppIntegrationTests {
             String partantName = "Partant AA";
             List<PartantEntity> list = partantJpaRepository.findByName(partantName);
 
-            ParameterizedTypeReference<List<PartantEntity>> typeRef = new ParameterizedTypeReference<>() {
-            };
+            ParameterizedTypeReference<List<PartantEntity>> typeRef =
+                    new ParameterizedTypeReference<>() { };
 
             // find partant AA
             ResponseEntity<List<PartantEntity>> response = restTemplate.exchange(
