@@ -16,7 +16,7 @@ import java.util.List;
  * It provides information about the API, contact details, license, and server URLs.
  */
 @Configuration
-public class swaggerConfig {
+public class SwaggerConfig {
 
     /**
      * The URL of the development server.

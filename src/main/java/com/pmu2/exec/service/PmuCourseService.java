@@ -6,6 +6,7 @@ import com.pmu2.exec.infrastrure.db.sql.CourseJpaRepository;
 import com.pmu2.exec.infrastrure.db.sql.PartantEntity;
 import com.pmu2.exec.infrastrure.kafka.producer.PmuProducerService;
 import com.pmu2.exec.service.mapper.CourseMapper;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class PmuCourseService {
 
     private final CourseJpaRepository courseJpaRepository;
@@ -31,7 +33,7 @@ public class PmuCourseService {
 
     public CourseRecord saveEvent(CourseRecord course) {
 
-        pmuProducerService.sendMessage(course);
+        pmuProducerService.sendMessageToKafka(course);
         return course;
     }
     public CourseRecord save(CourseRecord course) {

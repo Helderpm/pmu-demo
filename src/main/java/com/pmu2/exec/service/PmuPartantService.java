@@ -1,15 +1,15 @@
 package com.pmu2.exec.service;
 
 import com.pmu2.exec.domain.PartantRecord;
-import com.pmu2.exec.infrastrure.db.sql.PartantEntity;
 import com.pmu2.exec.infrastrure.db.sql.PartantJpaRepository;
 import com.pmu2.exec.service.mapper.PartantMapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@Transactional
 public class PmuPartantService {
 
     private final PartantJpaRepository partantJpaRepository;

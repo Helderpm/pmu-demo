@@ -3,7 +3,6 @@ package com.pmu2.exec.infrastrure.rest;
 import com.pmu2.exec.domain.PartantRecord;
 import com.pmu2.exec.service.PmuPartantService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,8 +13,11 @@ import java.util.List;
 @Tag(name = "Tutorial", description = "Tutorial management APIs")
 public class PmuPartantController {
 
-    @Autowired
-    private PmuPartantService pmuPartantService;
+    private final PmuPartantService pmuPartantService;
+
+    public PmuPartantController(PmuPartantService pmuPartantService) {
+        this.pmuPartantService = pmuPartantService;
+    }
 
     //find all courses in the system
     @GetMapping
