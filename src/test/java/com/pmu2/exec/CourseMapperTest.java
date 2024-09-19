@@ -1,14 +1,12 @@
 package com.pmu2.exec;
 
 import com.pmu2.exec.domain.CourseRecord;
-import com.pmu2.exec.infrastrure.db.sql.CourseEntity;
 import com.pmu2.exec.infrastrure.db.sql.PartantEntity;
 import com.pmu2.exec.service.mapper.CourseMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import static com.pmu2.exec.utils.TestUtil.newcourseEntity;

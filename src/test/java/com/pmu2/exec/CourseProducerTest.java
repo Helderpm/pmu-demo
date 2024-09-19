@@ -63,7 +63,7 @@ class CourseProducerTest {
     void testWriteToKafkaWithCurse() throws InterruptedException, JsonProcessingException {
         // Create a new CourseEntity E
         CourseRecord newCourse = TestUtil.newCourseRecord("course E");
-        producer.sendMessage(newCourse);
+        producer.sendMessageToKafka(newCourse);
 
         // Read the message (John Wick user) with a test consumer from Kafka and assert its properties
         ConsumerRecord<String, String> message = records.poll(500, TimeUnit.MILLISECONDS);
@@ -81,7 +81,7 @@ class CourseProducerTest {
     void testWriteToKafkaWithCursePartant() throws InterruptedException, JsonProcessingException {
         // Create a new CourseEntity E
         CourseRecord newCourse = TestUtil.newCourseRecordwithParant("course E");
-        producer.sendMessage(newCourse);
+        producer.sendMessageToKafka(newCourse);
 
         // Read the message (John Wick user) with a test consumer from Kafka and assert its properties
         ConsumerRecord<String, String> message = records.poll(500, TimeUnit.MILLISECONDS);

@@ -38,7 +38,7 @@ public class PmuProducerService {
      * @param message The message to send.
      * @return A CompletableFuture that completes when the message is sent or an error occurs.
      */
-    public CompletableFuture<SendResult<Integer, CourseRecord>> sendMessage(CourseRecord message) {
+    public CompletableFuture<SendResult<Integer, CourseRecord>> sendMessageToKafka(CourseRecord message) {
 
         var key = message.courseId();
 
@@ -73,7 +73,7 @@ public class PmuProducerService {
      * @param throwable The exception that occurred during the send operation.
      */
     private void handleFailure(Integer key, Object value, Throwable throwable) {
-        log.error("Error sending message and exception is {}", throwable.getMessage(), throwable);
+        log.error("Error sending message for the key: {} and the value: {} and exception is {}", key, value, throwable.getMessage(), throwable);
     }
 
 }

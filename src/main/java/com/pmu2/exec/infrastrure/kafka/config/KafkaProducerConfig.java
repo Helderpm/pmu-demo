@@ -42,6 +42,8 @@ public class KafkaProducerConfig {
         return new KafkaTemplate<>(producerFactory());
     }
 
+    //Enable routingTemplate: If you need to route messages to different topics based on their content,
+    //uncomment the routingTemplate method and configure it according to your needs.
     //@Bean
     public RoutingKafkaTemplate routingTemplate(GenericApplicationContext context,
                                                 ProducerFactory<Object, Object> pf) {
