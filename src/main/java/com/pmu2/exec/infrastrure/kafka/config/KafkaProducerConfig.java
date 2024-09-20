@@ -25,6 +25,12 @@ public class KafkaProducerConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private List<String> bootstrapAddress;
 
+        /**
+     * Creates a Kafka producer factory with custom configurations.
+     *
+     * @return A ProducerFactory instance configured with the provided bootstrap servers,
+     * key serializer, value serializer, and additional properties.
+     */
     @Bean
     public ProducerFactory<?, ?> producerFactory() {
         Map<String, Object> configProps = new HashMap<>();

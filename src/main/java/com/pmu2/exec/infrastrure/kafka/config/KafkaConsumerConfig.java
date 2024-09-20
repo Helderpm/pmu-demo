@@ -26,7 +26,6 @@ public class KafkaConsumerConfig {
     @Value(value = "${spring.kafka.bootstrap-servers}")
     private String bootstrapAddress;
 
-
     @Value(value = "${spring.kafka.consumer.group-id}")
     private String groupId;
 
@@ -34,12 +33,11 @@ public class KafkaConsumerConfig {
     public ConsumerFactory<String, CourseRecord> consumerFactory() {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG,
-                groupId);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
-        // Add other consumer properties as needed
-        return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), new JsonDeserializer<>(CourseRecord.class));
+        return new DefaultKafkaConsumerFactory<>(props,
+                new StringDeserializer(), new JsonDeserializer<>(CourseRecord.class));
     }
 
     @Bean
