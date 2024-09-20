@@ -1,9 +1,8 @@
-package com.pmu2.exec.infrastrure.outbound;
+package com.pmu2.exec.infrastrure.rest;
 
-import com.pmu2.exec.infrastrure.inbound.CourseEntity;
-import com.pmu2.exec.service.PmuCourseService;
+ import com.pmu2.exec.domain.CourseRecord;
+ import com.pmu2.exec.service.PmuCourseService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,20 +13,23 @@ import java.util.List;
 @Tag(name = "Tutorial", description = "Tutorial management APIs")
 public class PmuCourseController {
 
-    @Autowired
-    private PmuCourseService pmuCourseService;
+    private final PmuCourseService pmuCourseService;
+
+    public PmuCourseController(PmuCourseService pmuCourseService) {
+        this.pmuCourseService = pmuCourseService;
+    }
 
     //find all courses in the system
     @GetMapping
-    public List<CourseEntity> findAll() {
+    public List<CourseRecord> findAll() {
         return pmuCourseService.findAll();
     }
 
     // create a book
     @ResponseStatus(HttpStatus.CREATED) // 201
     @PostMapping
-    public CourseEntity create(@RequestBody CourseEntity course) {
-        return pmuCourseService.save(course);
+    public CourseRecord create(@RequestBody CourseRecord course) {
+        return pmuCourseService.saveEvent(course);
     }
 
     // delete a book
@@ -38,7 +40,7 @@ public class PmuCourseController {
     }
 
     @GetMapping("/find/{name}")
-    public List<CourseEntity> findByName(@PathVariable String name) {
+    public List<CourseRecord> findByName(@PathVariable String name) {
         return pmuCourseService.findByName(name);
     }
 }

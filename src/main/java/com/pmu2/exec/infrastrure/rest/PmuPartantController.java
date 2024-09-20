@@ -1,10 +1,8 @@
-package com.pmu2.exec.infrastrure.outbound;
+package com.pmu2.exec.infrastrure.rest;
 
-import com.pmu2.exec.infrastrure.inbound.CourseEntity;
-import com.pmu2.exec.infrastrure.inbound.PartantEntity;
+import com.pmu2.exec.domain.PartantRecord;
 import com.pmu2.exec.service.PmuPartantService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,19 +13,22 @@ import java.util.List;
 @Tag(name = "Tutorial", description = "Tutorial management APIs")
 public class PmuPartantController {
 
-    @Autowired
-    private PmuPartantService pmuPartantService;
+    private final PmuPartantService pmuPartantService;
+
+    public PmuPartantController(PmuPartantService pmuPartantService) {
+        this.pmuPartantService = pmuPartantService;
+    }
 
     //find all courses in the system
     @GetMapping
-    public List<PartantEntity> findAll() {
+    public List<PartantRecord> findAll() {
         return pmuPartantService.findAll();
     }
 
     // create a partant
     @ResponseStatus(HttpStatus.CREATED) // 201
     @PostMapping
-    public PartantEntity create(@RequestBody PartantEntity partant) {
+    public PartantRecord create(@RequestBody PartantRecord partant) {
         return pmuPartantService.save(partant);
     }
 
@@ -39,7 +40,7 @@ public class PmuPartantController {
     }
 
     @GetMapping("/find/{name}")
-    public List<PartantEntity> findByName(@PathVariable String name) {
+    public List<PartantRecord> findByName(@PathVariable String name) {
         return pmuPartantService.findByName(name);
     }
 }

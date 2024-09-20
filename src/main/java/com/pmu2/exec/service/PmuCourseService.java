@@ -1,9 +1,12 @@
 package com.pmu2.exec.service;
 
-import com.pmu2.exec.infrastrure.inbound.CourseEntity;
-import com.pmu2.exec.infrastrure.inbound.CourseJpaRepository;
-import com.pmu2.exec.infrastrure.inbound.PartantEntity;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.pmu2.exec.domain.CourseRecord;
+import com.pmu2.exec.infrastrure.db.sql.CourseEntity;
+import com.pmu2.exec.infrastrure.db.sql.CourseJpaRepository;
+import com.pmu2.exec.infrastrure.db.sql.PartantEntity;
+import com.pmu2.exec.infrastrure.kafka.producer.PmuProducerService;
+import com.pmu2.exec.service.mapper.CourseMapper;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -11,31 +14,45 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class PmuCourseService {
 
-    @Autowired
-    private CourseJpaRepository courseJpaRepository;
+    private final CourseJpaRepository courseJpaRepository;
+    private final PmuProducerService pmuProducerService;
+    private final CourseMapper courseMapper;
 
-    public List<CourseEntity> findAll() {
-        return courseJpaRepository.findAll();
+    public PmuCourseService(CourseJpaRepository courseJpaRepository, PmuProducerService pmuProducerService, CourseMapper courseMapper) {
+        this.courseJpaRepository = courseJpaRepository;
+        this.pmuProducerService = pmuProducerService;
+        this.courseMapper = courseMapper;
     }
 
-    public CourseEntity save(CourseEntity course) {
-        return courseJpaRepository.save(course);
+    public List<CourseRecord> findAll() {
+        return courseMapper.toRecordList(courseJpaRepository.findAll());
+    }
+
+    public CourseRecord saveEvent(CourseRecord course) {
+
+        pmuProducerService.sendMessageToKafka(course);
+        return course;
+    }
+    public CourseRecord save(CourseRecord course) {
+        var coursePersist = courseJpaRepository.save(courseMapper.toEntity(course));
+        return courseMapper.toRecord(coursePersist);
     }
 
     public void deleteById(Long id) {
         courseJpaRepository.deleteById(id);
     }
 
-    public List<CourseEntity> findByName(String name) {
-        return courseJpaRepository.findByName(name);
+    public List<CourseRecord> findByName(String name) {
+
+        return courseMapper.toRecordList(courseJpaRepository.findByName(name));
     }
 
     public List<PartantEntity> findPartantsByCourse(Long courseId) {
         Optional<CourseEntity> courseOptional = courseJpaRepository.findById(courseId);
         List<PartantEntity> partantsList = new ArrayList<>();
-
         courseOptional.ifPresent(courseEntity -> partantsList.addAll(courseEntity.getPartants()));
 
         return partantsList;
