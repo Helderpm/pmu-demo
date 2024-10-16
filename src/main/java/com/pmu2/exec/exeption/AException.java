@@ -1,4 +1,4 @@
-package com.pmu2.exec.infrastrure.kafka.exeption;
+package com.pmu2.exec.exeption;
 
 /**
  * Custom exception class for handling specific exceptions related to Kafka operations.

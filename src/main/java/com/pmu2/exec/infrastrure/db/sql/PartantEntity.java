@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
+import java.util.List;
+
 /**
  * Represents a Partant in the database.
  * This entity is mapped to the "partant" table in the database.
@@ -44,6 +46,9 @@ public class PartantEntity {
      */
     @Column(name = "numero", nullable = false)
     private int number;
+
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<CourseEntity> courses;
 
     /**
      * Constructor for creating a new PartantEntity with the given name and number.

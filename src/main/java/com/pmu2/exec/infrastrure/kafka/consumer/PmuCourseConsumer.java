@@ -1,7 +1,7 @@
 package com.pmu2.exec.infrastrure.kafka.consumer;
 
 import com.pmu2.exec.domain.CourseRecord;
-import com.pmu2.exec.infrastrure.kafka.exeption.AException;
+import com.pmu2.exec.exeption.AException;
 import com.pmu2.exec.service.PmuCourseService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
