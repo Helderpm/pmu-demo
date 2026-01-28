@@ -1,10 +1,11 @@
 package com.pmu2.exec.service;
 
 import com.pmu2.exec.domain.PartantRecord;
-import com.pmu2.exec.exeption.AException;
 import com.pmu2.exec.infrastrure.db.sql.PartantEntity;
 import com.pmu2.exec.infrastrure.db.sql.PartantJpaRepository;
 import com.pmu2.exec.service.mapper.PartantMapper;
+import com.pmu2.exec.validation.PartantValidator;
+import com.pmu2.exec.domain.service.PartantDomainService;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -14,48 +15,93 @@ import java.util.List;
 @Transactional
 public class PmuPartantService {
 
-    private final PmuCourseService pmuCourseService;
+    public static final String PARTANT_NOT_FOUND = "Partant not found";
     private final PartantJpaRepository partantJpaRepository;
     private final PartantMapper partantMapper;
+    private final PartantValidator partantValidator;
+    private final PartantDomainService partantDomainService;
 
-    public PmuPartantService(PmuCourseService pmuCourseService, PartantJpaRepository partantJpaRepository, PartantMapper partantMapper) {
-        this.pmuCourseService = pmuCourseService;
+    public PmuPartantService(PartantJpaRepository partantJpaRepository, PartantMapper partantMapper, PartantValidator partantValidator, PartantDomainService partantDomainService) {
         this.partantJpaRepository = partantJpaRepository;
         this.partantMapper = partantMapper;
+        this.partantValidator = partantValidator;
+        this.partantDomainService = partantDomainService;
     }
 
     public List<PartantRecord> findAll() {
-        return partantMapper.toReccordList(partantJpaRepository.findAll());
+        return partantMapper.toRecordList(partantJpaRepository.findAll());
     }
 
     public PartantRecord save(PartantRecord partant) {
-        return partantMapper.toReccord(partantJpaRepository.save(partantMapper.toEntity(partant)));
+        // Validate using both validation and domain services
+        partantDomainService.validatePartantEligibility(partant);
+        
+        PartantEntity partantEntity = partantMapper.toEntity(partant);
+        partantValidator.validatePartantEntity(partantEntity);
+        
+        PartantEntity savedEntity = partantJpaRepository.save(partantEntity);
+        return partantMapper.toRecord(savedEntity);
     }
 
     public void deleteById(Long id) {
-        // In your service or repository class
-        if (partantJpaRepository.findById(id).isPresent()){
-            pmuCourseService.removePartant(id); // Remove child from parent's collection
-            partantJpaRepository.deleteById(id); // Delete the child entity
-        }else{
-            throw new AException("Partant not found: " + id);
-        }
+        partantValidator.validatePartantExistsById(id);
+        partantJpaRepository.deleteById(id);
     }
 
     public List<PartantRecord> findByName(String name) {
-        return partantMapper.toReccordList(partantJpaRepository.findByName(name));
+        partantValidator.validatePartantExistsByName(name);
+        return partantMapper.toRecordList(partantJpaRepository.findByName(name));
     }
 
-    public void existPartants(List<PartantEntity> partants) {
-        if (partants.isEmpty()) {
-            return;
-        }
-        partants.forEach(partant -> {
-            var result = partantJpaRepository.findByName(partant.getName());
-            if (result.isEmpty()) {
-                throw new AException("Partant not found: " + partant.getName());
-            }
-        });
+    /**
+     * Checks if a partant is in good standing using domain service.
+     * 
+     * @param partantId the ID of the partant to check
+     * @return true if in good standing
+     */
+    public boolean isInGoodStanding(Long partantId) {
+        partantValidator.validatePartantExistsById(partantId);
+        
+        PartantRecord partant = partantMapper.toRecord(
+            partantJpaRepository.findById(partantId)
+                .orElseThrow(() -> new RuntimeException(PARTANT_NOT_FOUND))
+        );
+        
+        return partantDomainService.isInGoodStanding(partant);
+    }
+
+    /**
+     * Calculates performance score for a partant using domain service.
+     * 
+     * @param partantId the ID of the partant
+     * @return performance score (1-100)
+     */
+    public int calculatePerformanceScore(Long partantId) {
+        partantValidator.validatePartantExistsById(partantId);
+        
+        PartantRecord partant = partantMapper.toRecord(
+            partantJpaRepository.findById(partantId)
+                .orElseThrow(() -> new RuntimeException(PARTANT_NOT_FOUND))
+        );
+        
+        return partantDomainService.calculatePerformanceScore(partant);
+    }
+
+    /**
+     * Determines skill category for a partant using domain service.
+     * 
+     * @param partantId the ID of the partant
+     * @return skill category (NOVICE, INTERMEDIATE, ADVANCED, EXPERT)
+     */
+    public String determineSkillCategory(Long partantId) {
+        partantValidator.validatePartantExistsById(partantId);
+        
+        PartantRecord partant = partantMapper.toRecord(
+            partantJpaRepository.findById(partantId)
+                .orElseThrow(() -> new RuntimeException(PARTANT_NOT_FOUND))
+        );
+        
+        return partantDomainService.determineSkillCategory(partant);
     }
 
 }

@@ -19,7 +19,7 @@ public interface PartantMapper {
      * @param partantEntity the entity to map
      * @return the mapped record
      */
-    PartantRecord toReccord(PartantEntity partantEntity);
+    PartantRecord toRecord(PartantEntity partantEntity);
 
     /**
      * Maps a collection of {@link PartantEntity} to a collection of {@link PartantRecord}.
@@ -27,7 +27,7 @@ public interface PartantMapper {
      * @param partantEntity the entities to map
      * @return the mapped records
      */
-    List<PartantRecord> toReccordList(Iterable<PartantEntity> partantEntity);
+    List<PartantRecord> toRecordList(Iterable<PartantEntity> partantEntity);
 
     /**
      * Maps a single {@link PartantRecord} to a {@link PartantEntity}.

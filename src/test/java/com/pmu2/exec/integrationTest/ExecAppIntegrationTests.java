@@ -1,4 +1,4 @@
-package com.pmu2.exec;
+package com.pmu2.exec.integrationTest;
 
 import com.pmu2.exec.domain.CourseRecord;
 import com.pmu2.exec.domain.PartantRecord;
@@ -43,7 +43,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @TestPropertySource(properties = {"spring.jpa.hibernate.ddl-auto=create-drop"})
 @EmbeddedKafka(
         partitions = 1,
-        controlledShutdown = false,
         brokerProperties = {
                 "listeners=PLAINTEXT://localhost:3333",
                 "port=3333"

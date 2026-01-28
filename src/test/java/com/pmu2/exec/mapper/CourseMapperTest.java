@@ -1,4 +1,4 @@
-package com.pmu2.exec;
+package com.pmu2.exec.mapper;
 
 import com.pmu2.exec.domain.CourseRecord;
 import com.pmu2.exec.infrastrure.db.sql.PartantEntity;

@@ -1,9 +1,11 @@
-package com.pmu2.exec;
+package com.pmu2.exec.repository;
 
+import com.pmu2.exec.infrastrure.dao.EntrepriseJpaEntity;
 import com.pmu2.exec.infrastrure.db.sql.CourseEntity;
 import com.pmu2.exec.infrastrure.db.sql.CourseJpaRepository;
 import com.pmu2.exec.infrastrure.db.sql.PartantEntity;
 import com.pmu2.exec.infrastrure.db.sql.PartantJpaRepository;
+import com.pmu2.exec.infrastrure.repository.EntrepriseJpaRepository;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +15,10 @@ import org.springframework.test.annotation.DirtiesContext;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import static com.pmu2.exec.utils.TestUtil.getParticipantEntityListA;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
@@ -94,5 +98,24 @@ class RepositoryJpaTest {
         }
     }
 
+    @Nested
+    class EntrepriseJpaRepositoryTests{
+        @Autowired
+        private EntrepriseJpaRepository entrepriseJpaRepository;
+        @Test
+        void entrepriseRepository_shouldPersistAndFindByIdUsingEntityManager() {
+            EntrepriseJpaEntity entreprise = new EntrepriseJpaEntity(null, "Test Entreprise", "12345678901234");
+            // Use TestEntityManager to persist the entity directly
+            EntrepriseJpaEntity savedEntity = testEntityManager.persistAndFlush(entreprise);
+            
+            // Verify the entity was saved
+            assertThat(savedEntity.getEntrepriseId()).isNotNull();
+            
+            // Use the repository to find the entity
+            Optional<EntrepriseJpaEntity> foundEntity = entrepriseJpaRepository.findById(savedEntity.getEntrepriseId());
+            assertThat(foundEntity).isPresent();
+            assertThat(foundEntity.get().getNom()).isEqualTo("Test Entreprise");
+        }
+    }
 }
 
