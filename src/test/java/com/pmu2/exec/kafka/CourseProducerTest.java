@@ -1,4 +1,4 @@
-package com.pmu2.exec;
+package com.pmu2.exec.kafka;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@EmbeddedKafka(topics = {"pmu-events-test"}, partitions = 2)
+@EmbeddedKafka(topics = {"pmu-events-test"})
 @SpringBootTest(properties = "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class CourseProducerTest {

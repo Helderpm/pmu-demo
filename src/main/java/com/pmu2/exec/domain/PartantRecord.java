@@ -12,10 +12,8 @@ import jakarta.validation.constraints.Positive;
  * @param number The unique number assigned to the participant. Must be a positive integer.
  */
 public record PartantRecord(
-        @NotNull
-        Integer id,
-        @NotBlank(message = "Your Course needs a name.")
-        String name,
-        @NotNull @Positive(message = "positive number need.")
-        int number){
+        @NotNull Integer id,
+        @NotBlank(message = "Your Course needs a name.") String name,
+        @NotNull @Positive(message = "positive number need.") int number)
+{
 }

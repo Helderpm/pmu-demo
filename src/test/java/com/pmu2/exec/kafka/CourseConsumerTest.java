@@ -1,4 +1,4 @@
-package com.pmu2.exec;
+package com.pmu2.exec.kafka;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.core.JsonProcessingException;
