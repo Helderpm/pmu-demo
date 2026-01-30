@@ -16,7 +16,7 @@ import java.util.List;
  * It provides information about the API, contact details, license, and server URLs.
  */
 @Configuration
-public class SwaggerConfig {
+class SwaggerConfig {
 
     /**
      * The URL of the development server.
@@ -66,3 +66,4 @@ public class SwaggerConfig {
         return new OpenAPI().info(info).servers(List.of(devServer, prodServer));
     }
 }
+

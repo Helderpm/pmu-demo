@@ -2,8 +2,8 @@ package com.pmu2.exec.utils;
 
 import com.pmu2.exec.domain.CourseRecord;
 import com.pmu2.exec.domain.PartantRecord;
-import com.pmu2.exec.infrastrure.db.sql.CourseEntity;
-import com.pmu2.exec.infrastrure.db.sql.PartantEntity;
+import com.pmu2.exec.infrastructure.db.sql.CourseEntity;
+import com.pmu2.exec.infrastructure.db.sql.PartantEntity;
 
 import java.time.LocalDate;
 import java.util.List;

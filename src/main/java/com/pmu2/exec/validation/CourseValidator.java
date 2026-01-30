@@ -1,117 +1,115 @@
 package com.pmu2.exec.validation;
 
+import com.pmu2.exec.config.ValidationConfig;
 import com.pmu2.exec.domain.CourseRecord;
-import com.pmu2.exec.exception.CourseNotFoundException;
-import com.pmu2.exec.infrastrure.db.sql.CourseJpaRepository;
+import com.pmu2.exec.exception.NotFoundException;
+import com.pmu2.exec.exception.SimpleValidationException;
+import com.pmu2.exec.infrastructure.db.sql.CourseJpaRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 
 /**
- * Component responsible for validating course-related business rules.
- * This component separates validation logic from service layer, following Single Responsibility Principle.
+ * Component responsible for validating course-related existence and integrity rules.
  */
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class CourseValidator {
 
-    private final CourseJpaRepository courseJpaRepository;
+    private static final Logger log = LoggerFactory.getLogger(CourseValidator.class);
 
-    /**
-     * Validates that a course with the given ID exists in the database.
-     *
-     * @param courseId the ID of the course to validate
-     * @throws CourseNotFoundException if the course is not found
-     */
+    private final CourseJpaRepository courseJpaRepository;
+    private final ValidationConfig validationConfig;
+
     public void validateCourseExistsById(Long courseId) {
         if (courseId == null) {
-            throw new IllegalArgumentException("Course ID cannot be null");
+            throw new NotFoundException("courseId cannot be null");
         }
 
         if (!courseJpaRepository.existsById(courseId)) {
-            log.warn("Course not found with ID: {}", courseId);
-            throw new CourseNotFoundException(courseId);
+            throw new NotFoundException("Course", courseId);
         }
-        
-        log.debug("Course found with ID: {}", courseId);
     }
 
-    /**
-     * Validates course record data integrity.
-     *
-     * @param course the course record to validate
-     * @throws IllegalArgumentException if validation fails
-     */
-    public void validateCourseRecord(CourseRecord course) {
+    public void validateCourseIntegrity(CourseRecord course) {
         if (course == null) {
-            throw new IllegalArgumentException("Course record cannot be null");
+            throw new NotFoundException("course cannot be null");
         }
 
-        if (course.name() == null || course.name().trim().isEmpty()) {
-            throw new IllegalArgumentException("Course name cannot be null or empty");
+        // Validate date is not too far in the future (business rule)
+        LocalDate maxFutureDate = LocalDate.now().plusMonths(validationConfig.getCourse().getMaxFutureMonths());
+        if (course.date().isAfter(maxFutureDate)) {
+            throw new SimpleValidationException(
+                "Course date cannot be more than " + validationConfig.getCourse().getMaxFutureMonths() + " months in future"
+            );
         }
 
-        if (course.number() <= 0) {
-            throw new IllegalArgumentException("Course number must be positive");
-        }
-
-        if (course.date() == null) {
-            throw new IllegalArgumentException("Course date cannot be null");
-        }
-
-        if (course.date().isBefore(LocalDate.now())) {
-            throw new IllegalArgumentException("Course date cannot be in the past");
-        }
-
-        if (course.partants() == null || course.partants().isEmpty()) {
-            throw new IllegalArgumentException("Course must have at least one partant");
-        }
-
-        log.debug("Course record validation passed for: {}", course.name());
+        log.debug("Course integrity validation passed for: {}", course.name());
     }
 
-    /**
-     * Validates course name format and constraints.
-     *
-     * @param courseName the course name to validate
-     * @throws IllegalArgumentException if validation fails
-     */
+    public void validateCourseNameIntegrity(String courseName) {
+        if (courseName == null || courseName.trim().isEmpty()) {
+            throw new SimpleValidationException("courseName cannot be empty");
+        }
+
+        log.debug("Course name integrity validation passed for: {}", courseName);
+    }
+
     public void validateCourseName(String courseName) {
         if (courseName == null || courseName.trim().isEmpty()) {
-            throw new IllegalArgumentException("Course name cannot be null or empty");
+            throw new SimpleValidationException("Course name cannot be null or empty");
         }
-
         if (courseName.length() > 255) {
-            throw new IllegalArgumentException("Course name cannot exceed 255 characters");
+            throw new SimpleValidationException("Course name cannot exceed 255 characters");
         }
 
         log.debug("Course name validation passed for: {}", courseName);
     }
 
-    /**
-     * Validates that course date is not too far in the future.
-     *
-     * @param courseDate the course date to validate
-     * @throws IllegalArgumentException if validation fails
-     */
     public void validateCourseDate(LocalDate courseDate) {
         if (courseDate == null) {
-            throw new IllegalArgumentException("Course date cannot be null");
+            throw new SimpleValidationException("Course date cannot be null");
         }
-
         if (courseDate.isBefore(LocalDate.now())) {
-            throw new IllegalArgumentException("Course date cannot be in the past");
+            throw new SimpleValidationException("Course date cannot be in the past");
+        }
+        if (courseDate.isAfter(LocalDate.now().plusYears(1))) {
+            throw new SimpleValidationException("Course date cannot be more than 1 year in the future");
+        }
+    }
+
+    /**
+     * Validates a complete course record including all its components.
+     *
+     * @param course the course record to validate
+     * @throws SimpleValidationException if validation fails
+     */
+    public void validateCourseRecord(CourseRecord course) {
+        if (course == null) {
+            throw new SimpleValidationException("Course record cannot be null");
+        }
+        
+        validateCourseName(course.name());
+        validateCourseDate(course.date());
+        validateCourseIntegrity(course);
+    }
+
+    public void validateCourseNameUnique(String courseName) {
+        if (courseName == null || courseName.trim().isEmpty()) {
+            throw new SimpleValidationException("courseName cannot be empty");
         }
 
-        // Allow courses up to 1 year in the future
-        LocalDate maxFutureDate = LocalDate.now().plusYears(1);
-        if (courseDate.isAfter(maxFutureDate)) {
-            throw new IllegalArgumentException("Course date cannot be more than 1 year in the future");
+        // Check if course name already exists (case-insensitive)
+        boolean exists = courseJpaRepository.findByName(courseName).stream()
+            .anyMatch(course -> course.getName().equalsIgnoreCase(courseName.trim()));
+            
+        if (exists) {
+            throw new SimpleValidationException("Course with name '" + courseName + "' already exists");
         }
 
-        log.debug("Course date validation passed for: {}", courseDate);
+        log.debug("Course name uniqueness validation passed for: {}", courseName);
     }
 }

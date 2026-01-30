@@ -1,20 +1,19 @@
 package com.pmu2.exec.service;
 
-import com.pmu2.exec.exception.CourseNotFoundException;
-import com.pmu2.exec.exception.PartantNotFoundException;
-import com.pmu2.exec.infrastrure.db.sql.CourseEntity;
-import com.pmu2.exec.infrastrure.db.sql.CourseJpaRepository;
-import com.pmu2.exec.infrastrure.db.sql.PartantEntity;
-import com.pmu2.exec.infrastrure.db.sql.PartantJpaRepository;
+import com.pmu2.exec.exception.NotFoundException;
+import com.pmu2.exec.infrastructure.db.sql.CourseEntity;
+import com.pmu2.exec.infrastructure.db.sql.CourseJpaRepository;
+import com.pmu2.exec.infrastructure.db.sql.PartantEntity;
+import com.pmu2.exec.infrastructure.db.sql.PartantJpaRepository;
 import com.pmu2.exec.validation.CourseValidator;
 import com.pmu2.exec.validation.PartantValidator;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Service responsible for managing relationships between courses and partants.
@@ -22,9 +21,10 @@ import java.util.Optional;
  */
 @Service
 @RequiredArgsConstructor
-@Slf4j
 @Transactional
 public class CoursePartantService {
+
+    private static final Logger log = LoggerFactory.getLogger(CoursePartantService.class);
 
     private final CourseJpaRepository courseJpaRepository;
     private final PartantJpaRepository partantJpaRepository;
@@ -32,26 +32,13 @@ public class CoursePartantService {
     private final PartantValidator partantValidator;
 
     /**
-     * Validates that all partants exist in the database.
-     *
-     * @param partants list of partants to validate
-     * @throws PartantNotFoundException if any partant is not found
-     */
-    public void validatePartantsExist(List<PartantEntity> partants) {
-        partantValidator.validatePartantsExist(partants);
-    }
-
-    /**
      * Removes a partant from its associated course and deletes the partant.
      *
      * @param partantId the ID of the partant to remove
-     * @throws PartantNotFoundException if the partant is not found
+     * @throws NotFoundException if the partant is not found
      */
     public void removePartantFromCourseAndDelete(Long partantId) {
         partantValidator.validatePartantExistsById(partantId);
-        
-        PartantEntity partant = partantJpaRepository.findById(partantId)
-                .orElseThrow(() -> new PartantNotFoundException(partantId));
         
         // Find all courses that reference this partant and remove the reference
         List<CourseEntity> courses = courseJpaRepository.findAll();
@@ -78,8 +65,9 @@ public class CoursePartantService {
         courseValidator.validateCourseExistsById(courseId);
         
         CourseEntity course = courseJpaRepository.findById(courseId)
-                .orElseThrow(() -> new CourseNotFoundException(courseId));
+                .orElseThrow(() -> new NotFoundException("Course", courseId));
         
         return course.getPartants() != null ? course.getPartants() : List.of();
     }
 }
+

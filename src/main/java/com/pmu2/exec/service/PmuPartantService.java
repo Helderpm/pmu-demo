@@ -1,18 +1,20 @@
 package com.pmu2.exec.service;
 
 import com.pmu2.exec.domain.PartantRecord;
-import com.pmu2.exec.infrastrure.db.sql.PartantEntity;
-import com.pmu2.exec.infrastrure.db.sql.PartantJpaRepository;
+import com.pmu2.exec.infrastructure.db.sql.PartantEntity;
+import com.pmu2.exec.infrastructure.db.sql.PartantJpaRepository;
 import com.pmu2.exec.service.mapper.PartantMapper;
 import com.pmu2.exec.validation.PartantValidator;
 import com.pmu2.exec.domain.service.PartantDomainService;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 
 @Service
 @Transactional
+@Validated
 public class PmuPartantService {
 
     public static final String PARTANT_NOT_FOUND = "Partant not found";
@@ -33,11 +35,12 @@ public class PmuPartantService {
     }
 
     public PartantRecord save(PartantRecord partant) {
-        // Validate using both validation and domain services
+        // Validation chain: Format -> Integrity -> Business -> Existence
         partantDomainService.validatePartantEligibility(partant);
+        partantValidator.validatePartantNameUnique(partant.name());
         
         PartantEntity partantEntity = partantMapper.toEntity(partant);
-        partantValidator.validatePartantEntity(partantEntity);
+        partantValidator.validatePartantIntegrity(partantEntity);
         
         PartantEntity savedEntity = partantJpaRepository.save(partantEntity);
         return partantMapper.toRecord(savedEntity);
@@ -105,3 +108,4 @@ public class PmuPartantService {
     }
 
 }
+

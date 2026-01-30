@@ -1,7 +1,9 @@
 package com.pmu2.exec.service.mapper;
 
 import com.pmu2.exec.domain.CourseRecord;
-import com.pmu2.exec.infrastrure.db.sql.CourseEntity;
+import com.pmu2.exec.domain.PartantRecord;
+import com.pmu2.exec.infrastructure.db.sql.CourseEntity;
+import com.pmu2.exec.infrastructure.db.sql.PartantEntity;
 import org.mapstruct.Mapper;
 
 import java.util.List;
@@ -45,4 +47,13 @@ public interface CourseMapper {
      * @return the mapped entities
      */
     List<CourseEntity> toEntityList(Iterable<CourseRecord> courseRecords);
+    
+    /**
+     * Maps a collection of {@link PartantRecord} to a list of {@link PartantEntity}.
+     *
+     * @param partantRecords the partant records to map
+     * @return the mapped partant entities
+     */
+    List<PartantEntity> toPartantEntities(List<PartantRecord> partantRecords);
 }
+

@@ -1,14 +1,17 @@
 package com.pmu2.exec.domain.service;
 
+import com.pmu2.exec.config.ValidationConfig;
 import com.pmu2.exec.domain.CourseRecord;
 import com.pmu2.exec.domain.PartantRecord;
-import com.pmu2.exec.exception.CourseBusinessException;
-import lombok.extern.slf4j.Slf4j;
+import com.pmu2.exec.exception.BusinessException;
+import com.pmu2.exec.util.MathUtil;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Domain service for course-related business logic.
@@ -16,67 +19,56 @@ import java.util.stream.Collectors;
  * 
  * Key responsibilities:
  * - Course business rule validation
- * - Course eligibility calculations
+ * - Course eligibility calculations  
  * - Course status determination
- * - Partant assignment logic
+ * - Complex cross-entity validation
  */
 @Service
-@Slf4j
+@RequiredArgsConstructor
 public class CourseDomainService {
+
+    private static final Logger log = LoggerFactory.getLogger(CourseDomainService.class);
+
+    private final ValidationConfig validationConfig;
 
     /**
      * Validates if a course can be created based on business rules.
+     * This method focuses on complex business logic that cannot be expressed
+     * through Bean Validation annotations.
      * 
      * @param course the course to validate
-     * @throws CourseBusinessException if business rules are violated
+     * @throws BusinessException if business rules are violated
      */
     public void validateCourseCreation(CourseRecord course) {
         log.debug("Validating course creation for: {}", course.name());
         
-        // Business Rule: Course date cannot be more than 6 months in the future
-        LocalDate maxFutureDate = LocalDate.now().plusMonths(6);
+        // Business Rule: Course date cannot be more than configured months in the future
+        LocalDate maxFutureDate = LocalDate.now().plusMonths(validationConfig.getCourse().getMaxFutureMonths());
         if (course.date().isAfter(maxFutureDate)) {
-            throw new CourseBusinessException(
-                "Course date cannot be more than 6 months in the future. Provided date: " + course.date()
+            throw new BusinessException(
+                "Course date cannot be more than " + validationConfig.getCourse().getMaxFutureMonths() + " months in future"
             );
         }
         
-        // Business Rule: Course must have minimum 3 partants and maximum 20 partants
+        // Business Rule: Course must have minimum and maximum partants as configured
         int partantCount = course.partants().size();
-        if (partantCount < 3) {
-            throw new CourseBusinessException(
-                "Course must have at least 3 partants. Current count: " + partantCount
+        if (partantCount < validationConfig.getCourse().getMinPartants()) {
+            throw new BusinessException(
+                "Course must have at least " + validationConfig.getCourse().getMinPartants() + " partants"
             );
         }
         
-        if (partantCount > 20) {
-            throw new CourseBusinessException(
-                "Course cannot have more than 20 partants. Current count: " + partantCount
+        if (partantCount > validationConfig.getCourse().getMaxPartants()) {
+            throw new BusinessException(
+                "Course cannot have more than " + validationConfig.getCourse().getMaxPartants() + " partants"
             );
         }
         
         // Business Rule: All partant numbers must be unique within the course
-        List<Integer> partantNumbers = course.partants().stream()
-            .map(PartantRecord::number)
-            .sorted()
-            .collect(Collectors.toList());
-            
-        for (int i = 1; i < partantNumbers.size(); i++) {
-            if (partantNumbers.get(i).equals(partantNumbers.get(i - 1))) {
-                throw new CourseBusinessException(
-                    "Duplicate partant number found: " + partantNumbers.get(i)
-                );
-            }
-        }
+        validatePartantNumbersUnique(course.partants());
         
         // Business Rule: Partant numbers must be sequential starting from 1
-        for (int i = 0; i < partantNumbers.size(); i++) {
-            if (partantNumbers.get(i) != i + 1) {
-                throw new CourseBusinessException(
-                    "Partant numbers must be sequential starting from 1. Expected " + (i + 1) + ", found " + partantNumbers.get(i)
-                );
-            }
-        }
+        validatePartantNumbersSequential(course.partants());
         
         log.debug("Course creation validation passed for: {}", course.name());
     }
@@ -90,16 +82,17 @@ public class CourseDomainService {
     public boolean isEligibleForBetting(CourseRecord course) {
         log.debug("Checking betting eligibility for course: {}", course.name());
         
-        // Business Rule: Course must be at least 24 hours in the future
-        LocalDate minBettingDate = LocalDate.now().plusDays(1);
+        // Business Rule: Course must be at least configured hours in the future
+        LocalDate minBettingDate = LocalDate.now().plusDays(validationConfig.getCourse().getMinBettingHours() / 24);
         if (course.date().isBefore(minBettingDate)) {
             log.debug("Course {} not eligible for betting: too soon", course.name());
             return false;
         }
         
-        // Business Rule: Course must have between 5 and 15 partants for betting
+        // Business Rule: Course must have between configured min/max partants for betting
         int partantCount = course.partants().size();
-        if (partantCount < 5 || partantCount > 15) {
+        if (partantCount < validationConfig.getCourse().getMinBettingPartants() || 
+            partantCount > validationConfig.getCourse().getMaxBettingPartants()) {
             log.debug("Course {} not eligible for betting: invalid partant count ({})", course.name(), partantCount);
             return false;
         }
@@ -134,56 +127,52 @@ public class CourseDomainService {
         }
         
         // Ensure difficulty is within bounds
-        int difficulty = Math.max(1, Math.min(10, baseDifficulty));
+        int difficulty = MathUtil.clamp(baseDifficulty, 1, 10);
         
         log.debug("Course {} difficulty calculated as: {}", course.name(), difficulty);
         return difficulty;
     }
-    
+
     /**
-     * Determines the optimal starting positions for partants based on their numbers.
-     * This is a simplified algorithm - real-world scenarios would be much more complex.
-     * 
-     * @param course the course with partants
-     * @return list of partant IDs in optimal starting order
+     * Validates that partant numbers are unique within a course.
+     *
+     * @param partants list of partants to validate
+     * @throws BusinessException if duplicate numbers are found
      */
-    public List<Integer> determineStartingOrder(CourseRecord course) {
-        log.debug("Determining starting order for course: {}", course.name());
-        
-        // Simple algorithm: sort by partant number (this would be more complex in reality)
-        return course.partants().stream()
-            .sorted((p1, p2) -> Integer.compare(p1.number(), p2.number()))
-            .map(PartantRecord::id)
-            .collect(Collectors.toList());
+    private void validatePartantNumbersUnique(List<PartantRecord> partants) {
+        List<Integer> partantNumbers = partants.stream()
+            .map(partant -> (Integer) partant.number())
+            .sorted()
+            .toList();
+            
+        for (int i = 1; i < partantNumbers.size(); i++) {
+            if (partantNumbers.get(i).equals(partantNumbers.get(i - 1))) {
+                throw new BusinessException(
+                    "Duplicate partant number found: " + partantNumbers.get(i)
+                );
+            }
+        }
     }
-    
+
     /**
-     * Validates if a course can be modified based on business rules.
-     * 
-     * @param course the existing course
-     * @param modifications the proposed modifications
-     * @throws CourseBusinessException if modification is not allowed
+     * Validates that partant numbers are sequential starting from 1.
+     *
+     * @param partants list of partants to validate
+     * @throws BusinessException if numbers are not sequential
      */
-    public void validateCourseModification(CourseRecord course, CourseRecord modifications) {
-        log.debug("Validating course modification for: {}", course.name());
-        
-        // Business Rule: Cannot modify course date if it's less than 48 hours away
-        LocalDate cutoffDate = LocalDate.now().plusDays(2);
-        if (course.date().isBefore(cutoffDate) && !course.date().equals(modifications.date())) {
-            throw new CourseBusinessException(
-                "Cannot modify course date when it's less than 48 hours away"
-            );
+    private void validatePartantNumbersSequential(List<PartantRecord> partants) {
+        List<Integer> partantNumbers = partants.stream()
+            .map(partant -> (Integer) partant.number())
+            .sorted()
+            .toList();
+            
+        for (int i = 0; i < partantNumbers.size(); i++) {
+            if (partantNumbers.get(i) != i + 1) {
+                throw new BusinessException(
+                    "Partant numbers must be sequential starting from 1. Found: " + partantNumbers.get(i) + ", expected: " + (i + 1)
+                );
+            }
         }
-        
-        // Business Rule: Cannot remove partants if course is less than 24 hours away
-        LocalDate partantCutoffDate = LocalDate.now().plusDays(1);
-        if (course.date().isBefore(partantCutoffDate) && 
-            modifications.partants().size() < course.partants().size()) {
-            throw new CourseBusinessException(
-                "Cannot remove partants when course is less than 24 hours away"
-            );
-        }
-        
-        log.debug("Course modification validation passed for: {}", course.name());
     }
 }
+

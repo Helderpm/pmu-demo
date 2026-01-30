@@ -1,32 +1,30 @@
 package com.pmu2.exec.validation;
 
-import com.pmu2.exec.exception.PartantNotFoundException;
-import com.pmu2.exec.infrastrure.db.sql.PartantEntity;
-import com.pmu2.exec.infrastrure.db.sql.PartantJpaRepository;
+import com.pmu2.exec.exception.NotFoundException;
+import com.pmu2.exec.exception.SimpleValidationException;
+import com.pmu2.exec.infrastructure.db.sql.PartantEntity;
+import com.pmu2.exec.infrastructure.db.sql.PartantJpaRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 /**
- * Component responsible for validating partant-related business rules.
- * This component separates validation logic from service layer, following Single Responsibility Principle.
+ * Component responsible for validating partant-related existence and integrity rules.
  */
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class PartantValidator {
 
-    private final PartantJpaRepository partantJpaRepository;
+private static final Logger log = LoggerFactory.getLogger(PartantValidator.class);
 
-    /**
-     * Validates that all partants exist in the database.
-     * Throws PartantNotFoundException if any partant is not found.
-     *
-     * @param partants list of partants to validate
-     * @throws PartantNotFoundException if any partant is not found
-     */
+
+    public static final String PARTANT_NAME = "partantName";
+public static final String PARTANT = "Partant";
+private final PartantJpaRepository partantJpaRepository;
+
     public void validatePartantsExist(List<PartantEntity> partants) {
         if (partants == null || partants.isEmpty()) {
             log.debug("No partants to validate");
@@ -42,64 +40,103 @@ public class PartantValidator {
         log.debug("All {} partants validated successfully", partants.size());
     }
 
-    /**
-     * Validates that a partant with the given name exists in the database.
-     *
-     * @param partantName the name of the partant to validate
-     * @throws PartantNotFoundException if the partant is not found
-     */
     public void validatePartantExistsByName(String partantName) {
         if (partantName == null || partantName.trim().isEmpty()) {
-            throw new IllegalArgumentException("Partant name cannot be null or empty");
+            throw new SimpleValidationException("Partant name cannot be null or empty");
         }
 
-        List<PartantEntity> existingPartants = partantJpaRepository.findByName(partantName);
-        if (existingPartants.isEmpty()) {
-            log.warn("Partant not found: {}", partantName);
-            throw new PartantNotFoundException(partantName);
+        if (!partantJpaRepository.existsByName(partantName.trim())) {
+            throw new NotFoundException(PARTANT, partantName);
         }
-        
-        log.debug("Partant found: {}", partantName);
+
+        log.debug("Partant '{}' exists in database", partantName);
     }
 
-    /**
-     * Validates that a partant with the given ID exists in the database.
-     *
-     * @param partantId the ID of the partant to validate
-     * @throws PartantNotFoundException if the partant is not found
-     */
     public void validatePartantExistsById(Long partantId) {
         if (partantId == null) {
-            throw new IllegalArgumentException("Partant ID cannot be null");
+            throw new SimpleValidationException("partantId cannot be null");
         }
 
         if (!partantJpaRepository.existsById(partantId)) {
-            log.warn("Partant not found with ID: {}", partantId);
-            throw new PartantNotFoundException(partantId);
+            throw new NotFoundException(PARTANT, partantId);
         }
-        
-        log.debug("Partant found with ID: {}", partantId);
+
+        log.debug("Partant with ID {} exists in database", partantId);
     }
 
-    /**
-     * Validates partant entity data integrity.
-     *
-     * @param partant the partant entity to validate
-     * @throws IllegalArgumentException if validation fails
-     */
     public void validatePartantEntity(PartantEntity partant) {
         if (partant == null) {
-            throw new IllegalArgumentException("Partant entity cannot be null");
+            throw new SimpleValidationException("Partant entity cannot be null");
         }
 
         if (partant.getName() == null || partant.getName().trim().isEmpty()) {
-            throw new IllegalArgumentException("Partant name cannot be null or empty");
+            throw new SimpleValidationException("Partant name cannot be null or empty");
         }
 
         if (partant.getNumber() <= 0) {
-            throw new IllegalArgumentException("Partant number must be positive");
+            throw new SimpleValidationException("Partant number must be positive");
+        }
+    }
+
+    public void validatePartantIntegrity(PartantEntity partant) {
+        if (partant == null) {
+            throw new SimpleValidationException("partant cannot be null");
         }
 
-        log.debug("Partant entity validation passed for: {}", partant.getName());
+        log.debug("Partant integrity validation passed for: {}", partant.getName());
+    }
+
+    public void validatePartantNameUnique(String partantName) {
+        if (partantName == null || partantName.trim().isEmpty()) {
+            throw new SimpleValidationException(PARTANT_NAME);
+        }
+
+        boolean exists = partantJpaRepository.findByName(partantName).stream()
+            .anyMatch(partant -> partant.getName().equalsIgnoreCase(partantName.trim()));
+            
+        if (exists) {
+            throw new SimpleValidationException("Partant with name '" + partantName + "' already exists");
+        }
+
+        log.debug("Partant name uniqueness validation passed for: {}", partantName);
+    }
+
+    public void validatePartantNameUniqueForUpdate(String partantName, Long excludePartantId) {
+        if (partantName == null || partantName.trim().isEmpty()) {
+            throw new SimpleValidationException(PARTANT_NAME);
+        }
+
+        if (excludePartantId == null) {
+            throw new SimpleValidationException("excludePartantId cannot be null");
+        }
+
+        boolean exists = partantJpaRepository.findByName(partantName).stream()
+            .anyMatch(partant -> !partant.getId().equals(excludePartantId)
+                && partant.getName().equalsIgnoreCase(partantName.trim()));
+            
+        if (exists) {
+            throw new SimpleValidationException("Partant with name '" + partantName + "' already exists");
+        }
+
+        log.debug("Partant name uniqueness validation passed for: {} (excluding ID: {})", partantName, excludePartantId);
+    }
+
+    public void validatePartantNumbersUnique(List<PartantEntity> partants) {
+        if (partants == null || partants.isEmpty()) {
+            return;
+        }
+
+        List<Integer> numbers = partants.stream()
+            .map(PartantEntity::getNumber)
+            .sorted()
+            .toList();
+            
+        for (int i = 1; i < numbers.size(); i++) {
+            if (numbers.get(i).equals(numbers.get(i - 1))) {
+                throw new SimpleValidationException("Duplicate partant number found: " + numbers.get(i));
+            }
+        }
+
+        log.debug("Partant number uniqueness validation passed for {} partants", partants.size());
     }
 }

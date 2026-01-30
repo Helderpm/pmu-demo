@@ -1,7 +1,7 @@
 package com.pmu2.exec.service.mapper;
 
 import com.pmu2.exec.domain.PartantRecord;
-import com.pmu2.exec.infrastrure.db.sql.PartantEntity;
+import com.pmu2.exec.infrastructure.db.sql.PartantEntity;
 import org.mapstruct.Mapper;
 
 import java.util.List;
@@ -45,3 +45,4 @@ public interface PartantMapper {
      */
     List<PartantEntity> toEntityList(Iterable<PartantRecord> partantEntitys);
 }
+

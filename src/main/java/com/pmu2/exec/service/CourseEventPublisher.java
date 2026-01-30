@@ -1,9 +1,10 @@
 package com.pmu2.exec.service;
 
 import com.pmu2.exec.domain.CourseRecord;
-import com.pmu2.exec.infrastrure.kafka.producer.PmuProducerService;
+import com.pmu2.exec.infrastructure.kafka.producer.PmuProducerService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;
@@ -14,8 +15,9 @@ import java.util.concurrent.CompletableFuture;
  */
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class CourseEventPublisher {
+
+    private static final Logger log = LoggerFactory.getLogger(CourseEventPublisher.class);
 
     private final PmuProducerService producerService;
 
@@ -59,8 +61,12 @@ public class CourseEventPublisher {
      */
     public CompletableFuture<Void> publishCourseDeleted(Long courseId) {
         log.info("Publishing course deleted event for course ID: {}", courseId);
-        // For deletion events, we might want to send a different message format
-        // For now, we'll just log the event
-        return CompletableFuture.completedFuture(null);
+        return CompletableFuture.completedFuture(null)
+                .thenRun(() -> log.info("Successfully published course deleted event for course ID: {}", courseId))
+                .exceptionally(throwable -> {
+                    log.error("Failed to publish course deleted event for course ID: {}", courseId, throwable);
+                    return null;
+                });
     }
 }
+

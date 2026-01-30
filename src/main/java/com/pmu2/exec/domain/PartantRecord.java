@@ -1,19 +1,28 @@
 package com.pmu2.exec.domain;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
 
 /**
- * Represents a record of a participant in a race or event.
+ * Record representing a Partant (participant/horse) in the domain layer.
+ * This is an immutable domain object with validation annotations.
  *
- * @param id The unique identifier of the participant. Cannot be null.
- * @param name The name of the participant. Cannot be null or empty.
- * @param number The unique number assigned to the participant. Must be a positive integer.
+ * @param id     the unique identifier for the partant
+ * @param name   the name of the partant
+ * @param number the racing number of the partant
  */
 public record PartantRecord(
-        @NotNull Integer id,
-        @NotBlank(message = "Your Course needs a name.") String name,
-        @NotNull @Positive(message = "positive number need.") int number)
-{
+    Integer id,
+    
+    @NotBlank(message = "Partant name cannot be blank")
+    @Size(min = 2, max = 50, message = "Partant name must be between 2 and 50 characters")
+    String name,
+    
+    @Min(value = 1, message = "Partant number must be at least 1")
+    @Max(value = 99, message = "Partant number must be at most 99")
+    int number
+) {
 }
+
